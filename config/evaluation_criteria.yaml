@@ -1,0 +1,219 @@
+# Quantum Optics Research AI - Evaluation Criteria
+# Comprehensive Scoring System and Benchmarks
+
+# Evaluation Scoring Criteria
+scoring_criteria:
+  feasibility:
+    description: "Physical realizability and experimental feasibility"
+    max_score: 1.0
+    criteria:
+      energy_conservation:
+        weight: 0.2
+        checks:
+          - "Energy input/output balance"
+          - "No perpetual motion violations"
+          - "Realistic power requirements"
+      
+      fundamental_limits:
+        weight: 0.3
+        checks:
+          - "Heisenberg uncertainty principle"
+          - "Speed of light constraints"
+          - "Thermodynamic limits"
+          - "Quantum no-cloning theorem"
+      
+      material_properties:
+        weight: 0.2
+        checks:
+          - "Realistic material parameters"
+          - "Available nonlinear coefficients"
+          - "Achievable quality factors"
+          - "Temperature requirements"
+      
+      experimental_complexity:
+        weight: 0.3
+        checks:
+          - "Required precision levels"
+          - "Environmental stability needs"
+          - "Technical complexity assessment"
+          - "Current technology limits"
+
+  mathematics:
+    description: "Mathematical correctness and theoretical rigor"
+    max_score: 1.0
+    criteria:
+      derivation_correctness:
+        weight: 0.4
+        benchmarks:
+          jaynes_cummings:
+            rabi_frequency: "2g√(n+1)"
+            cooperativity: "4g²/(κγ)"
+            strong_coupling: "g > (κ,γ)/2"
+          
+          parametric_oscillator:
+            threshold_power: "κ²/(4χ²)"
+            squeezing_parameter: "r = asinh(√(P/P_th - 1))"
+            bandwidth: "κ√(1 - P/P_th)"
+          
+          optomechanics:
+            cooling_rate: "4g²n_cav/κ"
+            final_phonons: "γ_m/(4Γ_opt)"
+            ground_state_condition: "C = 4g²/(κγ_m) >> 1"
+      
+      dimensional_analysis:
+        weight: 0.2
+        checks:
+          - "Consistent units throughout"
+          - "Dimensionless parameters correctly formed"
+          - "Scaling laws physically reasonable"
+      
+      limiting_cases:
+        weight: 0.2
+        checks:
+          - "Weak coupling limit recovery"
+          - "Classical limit behavior"
+          - "Zero temperature limit"
+          - "Large detuning approximations"
+      
+      numerical_consistency:
+        weight: 0.2
+        checks:
+          - "Order of magnitude estimates"
+          - "Parameter ranges realistic"
+          - "Results match known experiments"
+
+  novelty:
+    description: "Research novelty and potential impact"
+    max_score: 1.0
+    criteria:
+      parameter_regimes:
+        weight: 0.3
+        novel_indicators:
+          - "Unexplored coupling strengths"
+          - "New frequency ranges"
+          - "Novel material combinations"
+          - "Extreme environmental conditions"
+      
+      system_architecture:
+        weight: 0.4
+        novel_indicators:
+          - "New cavity geometries"
+          - "Hybrid quantum systems"
+          - "Multi-component coupling"
+          - "Network/array configurations"
+      
+      applications:
+        weight: 0.3
+        novel_indicators:
+          - "New sensing modalities"
+          - "Quantum computing protocols"
+          - "Communications applications"
+          - "Fundamental physics tests"
+
+  performance:
+    description: "Performance metrics and optimization"
+    max_score: 1.0
+    metrics:
+      cavity_qed:
+        cooperativity:
+          excellent: "> 1000"
+          good: "100-1000"
+          acceptable: "10-100"
+          poor: "< 10"
+        
+        purcell_factor:
+          excellent: "> 100"
+          good: "10-100"
+          acceptable: "2-10"
+          poor: "< 2"
+      
+      squeezed_light:
+        squeezing_db:
+          excellent: "> 15 dB"
+          good: "10-15 dB"
+          acceptable: "3-10 dB"
+          poor: "< 3 dB"
+        
+        bandwidth_hz:
+          excellent: "> 10 MHz"
+          good: "1-10 MHz"
+          acceptable: "100 kHz - 1 MHz"
+          poor: "< 100 kHz"
+      
+      optomechanics:
+        final_phonon_number:
+          excellent: "< 0.1"
+          good: "0.1-1"
+          acceptable: "1-10"
+          poor: "> 10"
+        
+        cooperativity:
+          excellent: "> 1000"
+          good: "100-1000"
+          acceptable: "1-100"
+          poor: "< 1"
+
+# Benchmark Problems with Solutions
+benchmark_problems:
+  analytical_solutions:
+    jaynes_cummings_rabi:
+      description: "Rabi oscillations in Jaynes-Cummings model"
+      parameters:
+        coupling_strength: 1e6  # Hz
+        cavity_decay: 1e4      # Hz
+        atomic_decay: 1e3      # Hz
+        photon_number: 1
+      expected_results:
+        rabi_frequency: 2.828e6  # 2g√(n+1)
+        cooperativity: 400       # 4g²/(κγ)
+        oscillation_period: 3.536e-7  # 2π/Ω_R
+    
+    parametric_squeezing:
+      description: "Squeezing in degenerate parametric oscillator"
+      parameters:
+        nonlinear_coefficient: 1e3  # Hz
+        cavity_decay: 1e4          # Hz
+        pump_power_ratio: 0.8      # P/P_th
+      expected_results:
+        threshold_power: 2.5e-2    # κ²/(4χ²)
+        squeezing_parameter: 1.317  # asinh(√(P/P_th - 1))
+        squeezing_db: -11.5        # -10log₁₀(e^(-2r))
+    
+    optomechanical_cooling:
+      description: "Ground state cooling in optomechanics"
+      parameters:
+        coupling_rate: 1e3      # Hz
+        cavity_decay: 1e4      # Hz
+        mechanical_decay: 1e2  # Hz
+        bath_temperature: 300  # K
+        mechanical_frequency: 1e6  # Hz
+      expected_results:
+        cooperativity: 100     # 4g²/(κγ_m)
+        cooling_rate: 4e5      # 4g²n_cav/κ
+        final_phonons: 2.5e-4  # γ_m/(4Γ_opt)
+
+# Experimental Benchmarks
+experimental_records:
+  squeezing_records:
+    best_squeezing_db: -15
+    reference: "Schnabel group, Nature Photonics (2016)"
+    
+  cavity_finesse:
+    highest_finesse: 4.2e6
+    reference: "Rempe group, PRL (2018)"
+    
+  atom_cavity_coupling:
+    strongest_coupling_hz: 15e6
+    reference: "Haroche group, Nature (2020)"
+    
+  optomechanical_cooling:
+    lowest_phonon_number: 0.00012
+    reference: "Aspelmeyer group, Science (2019)"
+
+# Quality Thresholds
+quality_thresholds:
+  minimum_publication: 0.6
+  high_impact: 0.8
+  breakthrough_discovery: 0.9
+  feasibility_cutoff: 0.3
+  novelty_requirement: 0.4

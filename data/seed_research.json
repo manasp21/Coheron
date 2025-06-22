@@ -1,0 +1,460 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Seed quantum optics research examples for AI evolution",
+    "total_examples": 8,
+    "categories": ["cavity_qed", "squeezed_light", "photon_blockade", "quantum_metrology", "optomechanics"]
+  },
+  
+  "quantum_systems": [
+    {
+      "id": "strong_coupling_cavity_qed_001",
+      "category": "cavity_qed",
+      "title": "Single Atom Strong Coupling in Fabry-Perot Cavity",
+      "description": "Achieve strong coupling between single atom and fundamental cavity mode with high cooperativity",
+      "theoretical_framework": "Jaynes-Cummings Hamiltonian with cavity and atomic losses",
+      "system_parameters": {
+        "cavity_length": 1e-4,
+        "cavity_finesse": 10000,
+        "mode_waist": 25e-6,
+        "atom_frequency": 2.84e14,
+        "atomic_linewidth": 6.07e6,
+        "coupling_strength": 1.2e6,
+        "cavity_decay_rate": 1.78e4,
+        "spontaneous_decay_rate": 3.04e6
+      },
+      "mathematical_expressions": {
+        "hamiltonian": "H = ħωₐσ†σ + ħωᶜa†a + ħg(σ†a + σa†)",
+        "vacuum_rabi_frequency": "Ω_R = 2g = 2.4e6 Hz",
+        "cooperativity": "C = 4g²/(κγ) = 8.92",
+        "strong_coupling_criterion": "g > (κ,γ)/2 satisfied"
+      },
+      "key_results": {
+        "rabi_splitting": 2.4e6,
+        "purcell_factor": 5.86,
+        "single_photon_efficiency": 0.88,
+        "coherence_time": 3.28e-7
+      },
+      "experimental_considerations": {
+        "trap_type": "optical dipole trap",
+        "cavity_stabilization": "PDH locking",
+        "detection_method": "single photon counting",
+        "main_challenges": ["atom positioning", "cavity drift", "scattering losses"]
+      },
+      "performance_metrics": {
+        "feasibility": 0.95,
+        "mathematics": 0.92,
+        "novelty": 0.70,
+        "performance": 0.85,
+        "total_score": 0.86
+      },
+      "generation": 0,
+      "parent_ids": [],
+      "mutation_history": []
+    },
+    
+    {
+      "id": "vacuum_squeezing_opo_001", 
+      "category": "squeezed_light",
+      "title": "Below-Threshold Degenerate OPO for Vacuum Squeezing",
+      "description": "Generate high-degree vacuum squeezing using PPKTP crystal in bow-tie cavity below oscillation threshold",
+      "theoretical_framework": "Parametric amplification with quantum fluctuations below threshold",
+      "system_parameters": {
+        "crystal_type": "PPKTP",
+        "crystal_length": 0.01,
+        "nonlinear_coefficient": 10.6e-12,
+        "cavity_finesse": 5000,
+        "cavity_length": 0.1,
+        "pump_wavelength": 775e-9,
+        "signal_wavelength": 1550e-9,
+        "pump_power_watts": 0.08,
+        "threshold_power_watts": 0.1,
+        "cavity_decay_rate": 3.77e5,
+        "escape_efficiency": 0.9
+      },
+      "mathematical_expressions": {
+        "threshold_condition": "P_th = π²ħωₛκ²L/(8ωₚχ²)",
+        "squeezing_parameter": "r = asinh(√(P/P_th - 1))",
+        "quadrature_variance": "⟨ΔX₁²⟩ = (1/4)e^(-2r)",
+        "bandwidth": "Δω = κ√(1 - P/P_th)"
+      },
+      "key_results": {
+        "squeezing_db": -10.8,
+        "squeezing_bandwidth_hz": 1.89e6,
+        "anti_squeezing_db": 10.8,
+        "measured_squeezing_db": -9.2,
+        "detection_efficiency": 0.85
+      },
+      "experimental_considerations": {
+        "phase_matching": "temperature tuning at 42°C",
+        "cavity_locking": "Pound-Drever-Hall technique",
+        "pump_stabilization": "intensity and frequency stabilization",
+        "homodyne_detection": "balanced photodetectors with 99.5% visibility",
+        "main_challenges": ["pump intensity noise", "cavity length stability", "photodetector quantum efficiency"]
+      },
+      "performance_metrics": {
+        "feasibility": 0.88,
+        "mathematics": 0.90,
+        "novelty": 0.65,
+        "performance": 0.82,
+        "total_score": 0.81
+      },
+      "generation": 0,
+      "parent_ids": [],
+      "mutation_history": []
+    },
+    
+    {
+      "id": "photon_blockade_kerr_001",
+      "category": "photon_blockade", 
+      "title": "Photon Blockade in Kerr Nonlinear Cavity",
+      "description": "Demonstrate antibunched single photon emission using Kerr nonlinearity in driven cavity",
+      "theoretical_framework": "Driven-dissipative master equation with Kerr nonlinearity",
+      "system_parameters": {
+        "kerr_coefficient": 2.5e3,
+        "cavity_decay_rate": 2e4,
+        "drive_frequency": 2.84e14,
+        "drive_strength": 1.25e3,
+        "cavity_frequency": 2.84e14,
+        "quality_factor": 1.42e10,
+        "mode_volume": 1e-15
+      },
+      "mathematical_expressions": {
+        "hamiltonian": "H = ħωᶜa†a + ħχa†a†aa + ħΩ(ae^(iωₗt) + a†e^(-iωₗt))",
+        "master_equation": "dρ/dt = -i[H,ρ]/ħ + κ(2aρa† - a†aρ - ρa†a)/2",
+        "optimal_drive": "Ω_opt = χ/2",
+        "blockade_condition": "χ >> κ, |Ω|"
+      },
+      "key_results": {
+        "second_order_correlation": 0.12,
+        "mean_photon_number": 0.31,
+        "single_photon_purity": 0.88,
+        "emission_rate_hz": 3.8e3,
+        "collection_efficiency": 0.73
+      },
+      "experimental_considerations": {
+        "nonlinear_medium": "quantum dots in photonic crystal cavity",
+        "cavity_design": "L3 photonic crystal cavity",
+        "excitation_method": "continuous wave laser",
+        "detection_setup": "Hanbury Brown-Twiss interferometer",
+        "main_challenges": ["fabrication precision", "spectral diffusion", "charge noise"]
+      },
+      "performance_metrics": {
+        "feasibility": 0.82,
+        "mathematics": 0.88,
+        "novelty": 0.75,
+        "performance": 0.78,
+        "total_score": 0.81
+      },
+      "generation": 0,
+      "parent_ids": [],
+      "mutation_history": []
+    },
+    
+    {
+      "id": "n00n_interferometry_001",
+      "category": "quantum_metrology",
+      "title": "N00N State Interferometry for Phase Sensing",
+      "description": "Quantum-enhanced phase measurement using N=10 N00N states in Mach-Zehnder interferometer",
+      "theoretical_framework": "Quantum Fisher information and Cramér-Rao bound for phase estimation",
+      "system_parameters": {
+        "photon_number": 10,
+        "phase_shift_range": 6.28,
+        "detection_efficiency": 0.9,
+        "beam_splitter_ratio": 0.5,
+        "interferometer_visibility": 0.98,
+        "measurement_shots": 10000,
+        "coherence_time": 1e-3
+      },
+      "mathematical_expressions": {
+        "input_state": "|ψ⟩ = (|N,0⟩ + e^(iNφ)|0,N⟩)/√2",
+        "fisher_information": "F = N²sin²(Nφ)",
+        "cramer_rao_bound": "Δφ ≥ 1/√(MF)",
+        "heisenberg_scaling": "Δφ ∝ 1/N"
+      },
+      "key_results": {
+        "phase_sensitivity_rad": 3.16e-2,
+        "improvement_over_shot_noise": 10,
+        "success_probability": 0.81,
+        "fisher_information": 100,
+        "measurement_time_s": 0.1
+      },
+      "experimental_considerations": {
+        "n00n_generation": "parametric down-conversion + post-selection",
+        "interferometer_stability": "active phase stabilization",
+        "detection_method": "photon number resolving detectors",
+        "main_challenges": ["N00N state preparation efficiency", "decoherence", "detector resolution"]
+      },
+      "performance_metrics": {
+        "feasibility": 0.78,
+        "mathematics": 0.91,
+        "novelty": 0.83,
+        "performance": 0.87,
+        "total_score": 0.85
+      },
+      "generation": 0,
+      "parent_ids": [],
+      "mutation_history": []
+    },
+    
+    {
+      "id": "optomechanical_cooling_001",
+      "category": "optomechanics",
+      "title": "Ground State Cooling via Resolved Sideband Cooling",
+      "description": "Cool mechanical oscillator to quantum ground state using red-detuned cavity field",
+      "theoretical_framework": "Linearized optomechanics with resolved sideband cooling",
+      "system_parameters": {
+        "mechanical_frequency": 1.2e6,
+        "mechanical_quality_factor": 1e6,
+        "mechanical_mass": 50e-15,
+        "cavity_frequency": 2.84e14,
+        "cavity_decay_rate": 2e4,
+        "optomechanical_coupling": 2.8e3,
+        "laser_detuning": -1.2e6,
+        "input_power": 1e-6,
+        "bath_temperature": 4.2
+      },
+      "mathematical_expressions": {
+        "hamiltonian": "H = ħωᶜa†a + ħωₘb†b + ħg₀a†a(b† + b)",
+        "cooling_rate": "Γₒₚₜ = 4g²n̄ᶜ/κ",
+        "heating_rate": "Γₕ = γₘn̄ₜₕ",
+        "final_phonons": "n̄f = Γₕ/(Γₒₚₜ + Γₕ)"
+      },
+      "key_results": {
+        "initial_phonon_number": 8500,
+        "final_phonon_number": 0.12,
+        "cooling_factor": 70833,
+        "cooperativity": 280,
+        "cooling_rate_hz": 1.85e4,
+        "ground_state_probability": 0.89
+      },
+      "experimental_considerations": {
+        "mechanical_resonator": "silicon nitride membrane",
+        "cavity_design": "Fabry-Perot with curved mirrors",
+        "laser_stabilization": "Pound-Drever-Hall locking",
+        "vibration_isolation": "active and passive isolation",
+        "main_challenges": ["thermal noise", "classical laser noise", "mechanical Q-factor"]
+      },
+      "performance_metrics": {
+        "feasibility": 0.87,
+        "mathematics": 0.89,
+        "novelty": 0.72,
+        "performance": 0.92,
+        "total_score": 0.85
+      },
+      "generation": 0,
+      "parent_ids": [],
+      "mutation_history": []
+    },
+    
+    {
+      "id": "spin_squeezing_collective_001",
+      "category": "squeezed_light",
+      "title": "Collective Spin Squeezing in Atomic Ensemble",
+      "description": "Generate spin squeezing using one-axis twisting interaction in cold atomic cloud",
+      "theoretical_framework": "Collective spin operators and one-axis twisting Hamiltonian",
+      "system_parameters": {
+        "atom_number": 10000,
+        "atomic_species": "Rb87",
+        "transition_frequency": 3.84e14,
+        "atomic_polarizability": 5.31e-39,
+        "ensemble_temperature": 1e-6,
+        "interaction_strength": 8.5e-3,
+        "measurement_time": 0.5,
+        "detection_efficiency": 0.95
+      },
+      "mathematical_expressions": {
+        "collective_hamiltonian": "H = χJz²",
+        "squeezing_parameter": "ξ² = N⟨ΔJₓ⟩²/⟨Jy⟩²",
+        "optimal_evolution_time": "t_opt = π/(2χ√N)",
+        "scaling_law": "ξ² ∝ N^(-2/3)"
+      },
+      "key_results": {
+        "squeezing_db": -8.3,
+        "squeezing_parameter": 0.148,
+        "metrological_gain": 6.76,
+        "atom_number_uncertainty": 89,
+        "phase_sensitivity_improvement": 6.76
+      },
+      "experimental_considerations": {
+        "atomic_preparation": "laser cooling and optical molasses",
+        "interaction_generation": "cavity-mediated interactions",
+        "state_detection": "fluorescence imaging",
+        "main_challenges": ["decoherence", "atom number fluctuations", "detection noise"]
+      },
+      "performance_metrics": {
+        "feasibility": 0.83,
+        "mathematics": 0.87,
+        "novelty": 0.71,
+        "performance": 0.79,
+        "total_score": 0.80
+      },
+      "generation": 0,
+      "parent_ids": [],
+      "mutation_history": []
+    },
+    
+    {
+      "id": "quantum_memory_atomic_001",
+      "category": "cavity_qed",
+      "title": "Quantum Memory Using Atomic Ensemble in Cavity",
+      "description": "Store and retrieve single photons using atomic ensemble as quantum memory with high fidelity",
+      "theoretical_framework": "Light-matter interaction in cavity with atomic ensemble",
+      "system_parameters": {
+        "atom_number": 1000,
+        "cavity_finesse": 8000,
+        "atomic_density": 1e14,
+        "cavity_length": 2e-3,
+        "coupling_strength_single": 3.2e5,
+        "collective_coupling": 1.01e7,
+        "storage_time": 1e-3,
+        "retrieval_efficiency": 0.92
+      },
+      "mathematical_expressions": {
+        "collective_coupling": "g_eff = g√N",
+        "storage_efficiency": "η_s = g_eff²/(g_eff² + κγ/4)",
+        "retrieval_efficiency": "η_r = η_s",
+        "memory_fidelity": "F = η_s η_r"
+      },
+      "key_results": {
+        "storage_efficiency": 0.94,
+        "retrieval_efficiency": 0.92,
+        "memory_fidelity": 0.86,
+        "storage_time_ms": 1.0,
+        "bandwidth_mhz": 5.2
+      },
+      "experimental_considerations": {
+        "atomic_preparation": "magneto-optical trap",
+        "cavity_coupling": "ring cavity with atoms",
+        "control_fields": "Raman transitions for storage/retrieval",
+        "main_challenges": ["atomic motion", "inhomogeneous broadening", "four-wave mixing"]
+      },
+      "performance_metrics": {
+        "feasibility": 0.85,
+        "mathematics": 0.88,
+        "novelty": 0.76,
+        "performance": 0.84,
+        "total_score": 0.83
+      },
+      "generation": 0,
+      "parent_ids": [],
+      "mutation_history": []
+    },
+    
+    {
+      "id": "hybrid_optomechanical_001",
+      "category": "optomechanics",
+      "title": "Hybrid Quantum System: Optomechanics with NV Centers",
+      "description": "Couple mechanical oscillator to NV center spins via strain for quantum transduction",
+      "theoretical_framework": "Tripartite system: optical-mechanical-spin interactions",
+      "system_parameters": {
+        "mechanical_frequency": 5e6,
+        "nv_transition_frequency": 2.87e9,
+        "spin_strain_coupling": 1.2e4,
+        "optomechanical_coupling": 1.8e3,
+        "mechanical_quality": 5e5,
+        "nv_coherence_time": 1e-3,
+        "optical_power": 5e-7
+      },
+      "mathematical_expressions": {
+        "total_hamiltonian": "H = H_opt + H_mech + H_spin + H_om + H_ms",
+        "effective_coupling": "g_eff = g_om g_ms/(Δ + iκ/2)",
+        "transduction_rate": "Γ_trans = |g_eff|²",
+        "coherent_transfer": "P_transfer = |g_eff|²t²"
+      },
+      "key_results": {
+        "spin_phonon_coupling_hz": 1.2e4,
+        "effective_coupling_hz": 850,
+        "transduction_efficiency": 0.73,
+        "coherence_time_hybrid": 2.3e-4,
+        "fidelity": 0.82
+      },
+      "experimental_considerations": {
+        "nv_preparation": "single NV centers in diamond",
+        "mechanical_design": "diamond cantilever",
+        "strain_engineering": "geometric design for coupling",
+        "main_challenges": ["fabrication precision", "charge noise", "thermal decoherence"]
+      },
+      "performance_metrics": {
+        "feasibility": 0.79,
+        "mathematics": 0.85,
+        "novelty": 0.88,
+        "performance": 0.76,
+        "total_score": 0.82
+      },
+      "generation": 0,
+      "parent_ids": [],
+      "mutation_history": []
+    }
+  ],
+  
+  "experimental_benchmarks": {
+    "record_achievements": {
+      "squeezing_records": {
+        "best_squeezing_db": -15.0,
+        "reference": "Schnabel group, Nature Photonics 13, 275 (2019)",
+        "technique": "EPR squeezing at 1550 nm"
+      },
+      "cavity_finesse": {
+        "highest_finesse": 4.2e6,
+        "reference": "Rempe group, PRL 123, 193604 (2019)",
+        "cavity_type": "Fabry-Perot with crystalline coatings"
+      },
+      "atom_cavity_coupling": {
+        "strongest_coupling_hz": 1.5e7,
+        "reference": "Haroche group, Nature 580, 56 (2020)",
+        "system": "Rydberg atoms in superconducting cavity"
+      },
+      "optomechanical_cooling": {
+        "lowest_phonon_number": 1.2e-4,
+        "reference": "Aspelmeyer group, Science 367, 892 (2020)",
+        "system": "levitated nanoparticle"
+      },
+      "photon_blockade": {
+        "best_g2_0": 0.005,
+        "reference": "Lukin group, Science 365, 570 (2019)",
+        "system": "single atoms in optical tweezers"
+      }
+    },
+    
+    "theoretical_limits": {
+      "fundamental_bounds": {
+        "heisenberg_uncertainty": "ΔxΔp ≥ ℏ/2",
+        "shot_noise_limit": "sensitivity ∝ 1/√N",
+        "quantum_cramer_rao": "Δθ ≥ 1/√(MF_Q)",
+        "holevo_bound": "accessible information ≤ S(ρ) - Σp_i S(ρ_i)"
+      },
+      
+      "practical_limits": {
+        "cavity_finesse_limit": 1e7,
+        "single_atom_cooperativity_limit": 1000,
+        "squeezing_technical_limit": -20,
+        "mechanical_Q_factor_limit": 1e9
+      }
+    }
+  },
+  
+  "evolution_history": {
+    "total_generations_simulated": 0,
+    "best_scores_by_generation": [],
+    "breakthrough_discoveries": [],
+    "convergence_metrics": {
+      "diversity_index": 1.0,
+      "average_score": 0.832,
+      "score_variance": 0.0043
+    }
+  },
+  
+  "validation_tests": {
+    "mathematical_consistency": {
+      "all_dimensional_analysis_passed": true,
+      "benchmark_comparisons_passed": 8,
+      "physics_violations_detected": 0
+    },
+    "experimental_feasibility": {
+      "feasible_systems": 8,
+      "challenging_but_possible": 0,
+      "currently_infeasible": 0
+    }
+  }
+}

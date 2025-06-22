@@ -1,0 +1,154 @@
+# Quantum Optics Research AI - Research Prompts
+# Comprehensive Research Categories with Detailed Prompts
+
+# Research Categories with Detailed Prompts
+categories:
+  cavity_qed:
+    description: "Cavity quantum electrodynamics systems"
+    system_prompt: "You are a quantum optics expert specializing in cavity QED. Provide rigorous theoretical analysis with mathematical derivations."
+    prompts:
+      basic:
+        - "Design a cavity QED system for strong coupling between single atom and optical mode. Calculate vacuum Rabi frequency and analyze Jaynes-Cummings dynamics. Include specific cavity parameters (length, finesse, mode volume) and atomic properties."
+        - "Optimize cavity parameters (Q-factor, mode volume) for maximum atom-photon coupling in Fabry-Perot cavity. Consider realistic losses and derive cooperativity parameter."
+        - "Develop cavity QED protocol for deterministic single-photon generation with >99% efficiency. Address timing, collection efficiency, and coherence properties."
+      
+      advanced:
+        - "Design multi-atom cavity QED system with collective strong coupling. Analyze superradiance effects and collective Rabi splitting. Calculate scaling with atom number N."
+        - "Create cavity QED quantum memory protocol using atomic ensembles. Derive storage and retrieval efficiency as function of optical depth and cavity parameters."
+        - "Develop cavity-mediated entanglement generation between distant atoms. Calculate entanglement rate and fidelity including decoherence effects."
+      
+      experimental:
+        - "Design realistic cavity QED experiment using trapped ions in optical cavity. Include ion trapping parameters, cavity stability, and measurement protocols."
+        - "Create cavity QED setup with neutral atoms in optical lattice. Address atom localization, cavity mode matching, and scalability issues."
+        
+  squeezed_light:
+    description: "Quantum light generation and manipulation"
+    system_prompt: "You are an expert in quantum optics and squeezed light generation. Focus on theoretical foundations and experimental implementations."
+    prompts:
+      basic:
+        - "Generate theoretical framework for quadrature-squeezed light using optical parametric amplification. Derive squeezing parameter and bandwidth. Include crystal properties and phase matching conditions."
+        - "Design degenerate OPO below threshold for vacuum squeezing. Calculate optimal pump power, cavity parameters, and expected squeezing level in dB."
+        - "Develop spin squeezing protocol using collective atomic interactions. Analyze one-axis twisting Hamiltonian and derive squeezing scaling with atom number."
+      
+      advanced:
+        - "Create multimode squeezing protocol using cascaded parametric processes. Analyze frequency correlations and entanglement structure between modes."
+        - "Design amplitude squeezed light source using quantum dot in microcavity. Include Purcell enhancement, phonon coupling, and dephasing effects."
+        - "Develop continuous variable cluster states using temporal multiplexing of squeezed light. Calculate required squeezing levels and success probability."
+      
+      applications:
+        - "Design gravitational wave detector enhancement using squeezed light injection. Calculate sensitivity improvement and frequency-dependent squeezing requirements."
+        - "Create quantum-enhanced force sensing protocol using spin-squeezed atomic ensembles. Derive Heisenberg-limited sensitivity scaling."
+
+  photon_blockade:
+    description: "Nonlinear quantum optics and photon correlations"
+    system_prompt: "You are an expert in nonlinear quantum optics. Focus on photon statistics, correlation functions, and blockade mechanisms."
+    prompts:
+      basic:
+        - "Derive conditions for photon blockade in nonlinear optical cavity with Kerr nonlinearity. Calculate second-order correlation function g²(0) and optimal drive parameters."
+        - "Design unconventional photon blockade using interference in coupled cavities. Analyze destructive interference conditions and photon statistics."
+        - "Analyze photon bunching/antibunching in driven-dissipative systems using master equation approach. Include cavity losses and thermal fluctuations."
+      
+      advanced:
+        - "Create photon blockade in optomechanical system using radiation pressure nonlinearity. Derive effective photon-photon interaction and blockade conditions."
+        - "Design few-photon nonlinear optics using Rydberg atoms in cavity. Calculate interaction strengths and many-body effects."
+        - "Develop photon blockade protocol using electromagnetically induced transparency. Analyze slow light effects and enhanced nonlinearities."
+      
+      quantum_computing:
+        - "Design photonic quantum gate using photon blockade effect. Calculate gate fidelity and success probability for two-qubit operations."
+        - "Create deterministic single-photon source using blockade mechanism. Optimize for high extraction efficiency and indistinguishability."
+
+  quantum_metrology:
+    description: "Quantum-enhanced sensing and measurement"
+    system_prompt: "You are an expert in quantum metrology and sensing. Focus on precision limits, quantum Fisher information, and practical implementations."
+    prompts:
+      basic:
+        - "Develop quantum-enhanced interferometric scheme using N00N states. Calculate phase sensitivity, derive Heisenberg limit scaling, and address practical limitations."
+        - "Design atomic clock protocol with superposition states for Heisenberg-limited precision. Include decoherence effects and optimal interrogation strategies."
+        - "Create quantum sensor protocol beating standard quantum limit using entangled probe states. Derive quantum Fisher information and Cramér-Rao bound."
+      
+      advanced:
+        - "Design quantum-enhanced magnetometry using NV centers with optimal probe states. Calculate sensitivity scaling with number of sensors and coherence time."
+        - "Create distributed quantum sensing network using entangled atomic ensembles. Analyze collective enhancement and network topology effects."
+        - "Develop quantum error correction for sensing applications. Design codes protecting against decoherence while preserving sensing capability."
+      
+      applications:
+        - "Design quantum-enhanced atomic gravimeter with 10⁻¹² precision. Include systematic error suppression and environmental noise mitigation."
+        - "Create quantum radar protocol using microwave entanglement. Calculate detection probability enhancement over classical radar."
+
+  optomechanics:
+    description: "Cavity optomechanics and quantum control"
+    system_prompt: "You are an expert in cavity optomechanics. Focus on radiation pressure coupling, quantum control, and hybrid quantum systems."
+    prompts:
+      basic:
+        - "Analyze radiation pressure coupling in cavity optomechanical system. Derive linearized dynamics, cooling rates, and ground state cooling conditions."
+        - "Design ground state cooling protocol via resolved sideband cooling. Calculate final phonon number and cooling efficiency for realistic parameters."
+        - "Develop optomechanical protocol for quantum state transfer between optical and mechanical modes. Include transfer fidelity and bandwidth limitations."
+      
+      advanced:
+        - "Create optomechanical entanglement between mechanical oscillators using optical cavity modes. Derive entanglement criterion and decoherence effects."
+        - "Design quantum non-demolition measurement of mechanical motion using cavity optomechanics. Calculate back-action limits and measurement sensitivity."
+        - "Develop optomechanical quantum memory using long-lived mechanical modes. Analyze storage time and retrieval efficiency."
+      
+      hybrid_systems:
+        - "Design hybrid optomechanical system coupling atomic spins to mechanical motion. Create protocols for spin-motion entanglement and quantum control."
+        - "Create quantum transduction between optical and microwave domains using optomechanical system. Calculate conversion efficiency and added noise."
+
+  quantum_networks:
+    description: "Quantum communication and networking"
+    system_prompt: "You are an expert in quantum networks and communication. Focus on entanglement distribution, quantum repeaters, and network protocols."
+    prompts:
+      basic:
+        - "Design quantum repeater protocol using atomic memories and photonic entanglement. Calculate secret key rate and transmission distance scaling."
+        - "Develop heralded entanglement generation between remote quantum nodes. Include success probability, fidelity, and purification protocols."
+        - "Create quantum network architecture for distributed quantum computing. Address connectivity, routing, and error correction requirements."
+      
+      advanced:
+        - "Design all-photonic quantum repeater using temporal multiplexing. Calculate resource requirements and rate-distance trade-offs."
+        - "Create quantum internet protocol stack with physical to application layers. Address addressing, routing, and security protocols."
+        - "Develop quantum network coding protocols for multicast communication. Analyze throughput enhancement and security implications."
+
+# Evolution and Mutation Prompts
+evolution_prompts:
+  mutation_strategies:
+    parameter_mutation: 
+      - "Modify the following quantum optical system by changing one key parameter: {system_description}. Explore how this change affects the physics and performance."
+      - "Optimize the parameter {parameter_name} in this quantum system: {system_description}. Find the regime that maximizes {objective_function}."
+    
+    concept_fusion:
+      - "Combine these two quantum optics approaches creatively: {approach_1} and {approach_2}. Create a hybrid system that leverages advantages of both."
+      - "Merge concepts from {field_1} and {field_2} to create novel quantum optical system. Focus on unexpected synergies and emergent phenomena."
+    
+    constraint_exploration:
+      - "Design quantum optical system with the constraint: {constraint}. Find creative solutions that work within this limitation."
+      - "Adapt this quantum system {system_description} to work in {new_environment}. Address new challenges and opportunities."
+    
+    scale_variation:
+      - "Scale this quantum system {system_description} to {scale_factor} times larger/smaller. Analyze scaling laws and new physics that emerges."
+      - "Adapt this single-particle quantum system {system_description} to many-body regime with {particle_number} particles."
+
+  exploration_prompts:
+    novel_phenomena:
+      - "Propose novel quantum optical phenomenon that could enable breakthrough in {application_area}. Provide theoretical foundation and experimental signatures."
+      - "Identify unexplored parameter regime in {quantum_system_type} that might host new physics. Justify why this regime is interesting."
+    
+    unconventional_systems:
+      - "Design unconventional quantum optical architecture using {exotic_material} or {unusual_geometry}. Explore unique properties and capabilities."
+      - "Create quantum optical system inspired by {biological_system} or {classical_analog}. Extract key principles and implement quantum version."
+    
+    interdisciplinary:
+      - "Apply quantum optics techniques to solve problem in {other_field}. Identify quantum advantages and practical implementations."
+      - "Import concepts from {other_physics_field} into quantum optics. Create new theoretical framework or experimental protocol."
+
+# System Prompts for Different Model Types
+model_specific_prompts:
+  step_by_step_models:
+    system_prompt: "Think step by step. Break down complex quantum optics problems into manageable steps. Show your reasoning clearly at each stage."
+    instruction_suffix: "\n\nSolve this step by step:\n1. Identify the key physics\n2. Set up the theoretical framework\n3. Perform calculations\n4. Interpret results\n5. Discuss applications"
+  
+  analytical_models:
+    system_prompt: "Provide rigorous analytical treatment of quantum optics problems. Include mathematical derivations, physical intuition, and connection to experiments."
+    instruction_suffix: "\n\nProvide complete analytical solution including:\n- Theoretical framework\n- Mathematical derivation\n- Physical interpretation\n- Experimental considerations"
+  
+  creative_models:
+    system_prompt: "Explore creative and unconventional approaches to quantum optics. Think outside traditional paradigms while maintaining physical rigor."
+    instruction_suffix: "\n\nBe creative but rigorous:\n- Explore unconventional approaches\n- Challenge traditional assumptions\n- Propose novel applications\n- Maintain physical validity"

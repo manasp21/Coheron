@@ -1,0 +1,286 @@
+# Coheron - Git Ignore
+
+# =============================================================================
+# SECURITY AND SECRETS
+# =============================================================================
+
+# Environment variables and API keys
+.env
+.env.local
+.env.*.local
+*.key
+api_keys.txt
+secrets.json
+
+# Configuration files with sensitive data
+config/local_config.yaml
+config/production_config.yaml
+
+# =============================================================================
+# PYTHON
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# =============================================================================
+# RESEARCH DATA AND OUTPUTS
+# =============================================================================
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+data/research_history.db
+data/backup_*.db
+test_*.db
+
+# Generated results and plots
+results/
+plots/
+exports/
+output/
+temp_results/
+
+# Large data files
+*.hdf5
+*.h5
+*.npy
+*.npz
+data/large_datasets/
+
+# Model checkpoints and cached data
+models/
+checkpoints/
+.cache/
+cached_results/
+
+# Evolution state files
+evolution_state_*.json
+research_backup_*.json
+
+# =============================================================================
+# LOGS AND MONITORING
+# =============================================================================
+
+# Log files
+logs/
+*.log
+*.log.*
+log_*.txt
+
+# Debug and profiling files
+*.prof
+*.profile
+debug_*.txt
+trace_*.txt
+
+# Monitoring and metrics
+metrics/
+telemetry/
+*.metrics
+
+# =============================================================================
+# DEVELOPMENT AND TESTING
+# =============================================================================
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Testing
+.pytest_cache/
+test_results/
+test_output/
+mock_data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+.temporary/
+
+# =============================================================================
+# DOCUMENTATION AND BUILDS
+# =============================================================================
+
+# Documentation builds
+docs/_build/
+docs/build/
+*.pdf
+*.html
+
+# LaTeX files
+*.aux
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+
+# =============================================================================
+# SYSTEM AND OS FILES
+# =============================================================================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# =============================================================================
+# SPECIFIC TO PROJECT
+# =============================================================================
+
+# Custom research configurations
+config/custom_*.yaml
+config/user_*.yaml
+config/experiment_*.yaml
+
+# Personal research notes
+notes/
+personal_research/
+experiments/
+sandbox/
+
+# Large language model outputs
+llm_outputs/
+generated_content/
+research_cache/
+
+# Backup files
+backup/
+*.backup
+*.bak
+
+# Performance profiling
+*.perf
+*.cprof
+
+# =============================================================================
+# OPTIONAL INTEGRATIONS
+# =============================================================================
+
+# Web interface builds
+web/build/
+web/dist/
+web/node_modules/
+
+# Docker
+Dockerfile.local
+docker-compose.override.yml
+.dockerignore
+
+# Kubernetes
+k8s/local/
+*.yaml.local
+
+# CI/CD
+.github/workflows/local_*
+.gitlab-ci.local.yml

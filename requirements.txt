@@ -1,0 +1,51 @@
+# Coheron - Dependencies
+
+# Core AI and LLM dependencies
+openai>=1.0.0                    # OpenRouter API integration
+anthropic>=0.25.0                # Anthropic models (optional)
+
+# Data manipulation and analysis
+numpy>=1.24.0                    # Numerical computing
+scipy>=1.10.0                    # Scientific computing
+pandas>=2.0.0                    # Data analysis
+
+# Configuration and serialization
+pyyaml>=6.0                      # YAML configuration files
+python-dotenv>=1.0.0             # Environment variable management
+
+# Database and storage
+sqlite3                          # Built-in - database storage
+pickle                           # Built-in - data serialization
+
+# Visualization and plotting
+matplotlib>=3.7.0                # Plotting and visualization
+seaborn>=0.12.0                  # Statistical visualization
+
+# Development and testing
+pytest>=7.0.0                    # Testing framework
+pytest-asyncio>=0.21.0          # Async testing support
+black>=23.0.0                    # Code formatting
+flake8>=6.0.0                    # Code linting
+mypy>=1.5.0                      # Type checking
+
+# Logging and monitoring
+structlog>=23.0.0                # Structured logging
+rich>=13.0.0                     # Rich text and beautiful formatting
+
+# Optional: Advanced features
+# jupyter>=1.0.0                 # Jupyter notebook support
+# networkx>=3.0                  # Graph analysis for research lineage
+# scikit-learn>=1.3.0            # Machine learning for analysis
+
+# Performance optimization (optional)
+# numba>=0.57.0                  # JIT compilation for numerical code
+# cython>=3.0.0                  # C extensions for performance
+
+# Web interface (optional)
+# fastapi>=0.100.0               # Web API framework
+# uvicorn>=0.23.0                # ASGI server
+# streamlit>=1.25.0              # Web dashboard
+
+# Additional scientific computing (optional)
+# sympy>=1.12                    # Symbolic mathematics
+# qutip>=4.7.0                   # Quantum optics simulations

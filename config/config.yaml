@@ -1,0 +1,112 @@
+# Quantum Optics Research AI - Configuration
+# Complete Model Management and System Configuration
+
+# API Configuration
+api:
+  provider: "openrouter"
+  api_key: "${OPENROUTER_API_KEY}"  # Environment variable
+  base_url: "https://openrouter.ai/api/v1"
+  timeout: 300
+  max_retries: 3
+
+# Current Model (Change this line to switch models instantly)
+current_model: "deepseek/deepseek-r1-0528:free"
+
+# Model Definitions (Add new models here)
+models:
+  # DeepSeek Models
+  "deepseek/deepseek-r1-0528:free":
+    temperature: 0.7
+    max_tokens: 4000
+    top_p: 0.9
+    reasoning_style: "step_by_step"
+    physics_strength: "high"
+    cost_per_token: 0.0
+    description: "Free DeepSeek R1 model - good for testing"
+    
+  "deepseek/deepseek-r1":
+    temperature: 0.6
+    max_tokens: 8000
+    top_p: 0.95
+    reasoning_style: "detailed"
+    physics_strength: "high"
+    cost_per_token: 0.14
+    description: "Paid DeepSeek R1 - enhanced capabilities"
+    
+  # Anthropic Models
+  "anthropic/claude-3.5-sonnet":
+    temperature: 0.6
+    max_tokens: 8000
+    top_p: 0.9
+    reasoning_style: "analytical"
+    physics_strength: "very_high"
+    cost_per_token: 3.0
+    description: "Claude 3.5 Sonnet - excellent for physics"
+    
+  "anthropic/claude-3-haiku":
+    temperature: 0.7
+    max_tokens: 4000
+    top_p: 0.9
+    reasoning_style: "concise"
+    physics_strength: "medium"
+    cost_per_token: 0.25
+    description: "Claude 3 Haiku - fast and economical"
+    
+  # OpenAI Models
+  "openai/gpt-4-turbo":
+    temperature: 0.5
+    max_tokens: 4000
+    top_p: 0.8
+    reasoning_style: "structured"
+    physics_strength: "high"
+    cost_per_token: 10.0
+    description: "GPT-4 Turbo - structured problem solving"
+    
+  "openai/gpt-4o":
+    temperature: 0.6
+    max_tokens: 4000
+    top_p: 0.9
+    reasoning_style: "creative"
+    physics_strength: "high"
+    cost_per_token: 5.0
+    description: "GPT-4o - balanced performance"
+    
+  # Google Models
+  "google/gemini-pro":
+    temperature: 0.7
+    max_tokens: 4000
+    top_p: 0.9
+    reasoning_style: "creative"
+    physics_strength: "medium"
+    cost_per_token: 1.0
+    description: "Gemini Pro - creative solutions"
+
+# Research Evolution Parameters
+evolution:
+  population_size: 10
+  max_generations: 50
+  mutation_rate: 0.3
+  crossover_rate: 0.7
+  elite_retention: 0.2
+  diversity_threshold: 0.1
+  stagnation_limit: 10
+
+# Evaluation Weights
+evaluation:
+  weights:
+    feasibility: 0.25    # Physical realizability
+    mathematics: 0.30    # Mathematical correctness
+    novelty: 0.25        # Research novelty
+    performance: 0.20    # Performance metrics
+  
+  thresholds:
+    minimum_score: 0.3
+    elite_score: 0.8
+    breakthrough_score: 0.9
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  file: "logs/quantum_research.log"
+  max_size_mb: 100
+  backup_count: 5
