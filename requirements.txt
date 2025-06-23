@@ -14,8 +14,8 @@ pyyaml>=6.0                      # YAML configuration files
 python-dotenv>=1.0.0             # Environment variable management
 
 # Database and storage
-sqlite3                          # Built-in - database storage
-pickle                           # Built-in - data serialization
+# sqlite3                        # Built-in Python module (not installable via pip)
+# pickle                         # Built-in Python module (not installable via pip)
 
 # Visualization and plotting
 matplotlib>=3.7.0                # Plotting and visualization

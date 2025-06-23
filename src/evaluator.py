@@ -46,7 +46,7 @@ class QuantumOpticsEvaluator:
     def _load_benchmarks(self, filepath: str) -> Dict[str, Any]:
         """Load analytical benchmarks and experimental records"""
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except FileNotFoundError:
             self.logger.warning(f"Benchmarks file not found: {filepath}")
@@ -55,7 +55,7 @@ class QuantumOpticsEvaluator:
     def _load_criteria(self, filepath: str) -> Dict[str, Any]:
         """Load evaluation criteria"""
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 return yaml.safe_load(f)
         except FileNotFoundError:
             self.logger.warning(f"Criteria file not found: {filepath}")

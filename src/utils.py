@@ -461,7 +461,7 @@ def safe_divide(numerator: float, denominator: float, default: float = 0.0) -> f
 def load_json_safe(filepath: str, default: Any = None) -> Any:
     """Safely load JSON file with default fallback"""
     try:
-        with open(filepath, 'r') as f:
+        with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError) as e:
         logging.warning(f"Could not load {filepath}: {e}")

@@ -39,9 +39,11 @@ class ResearchSolution:
 class QuantumResearchEvolver:
     """Main evolution controller inspired by AlphaEvolve for quantum optics research"""
     
-    def __init__(self, config_path: str = "config/config.yaml"):
+    def __init__(self, config_path: str = "config/config.yaml", demo_mode: bool = False):
         # Initialize core components
-        self.llm = OpenRouterInterface(config_path)
+        self.demo_mode = demo_mode
+        if not demo_mode:
+            self.llm = OpenRouterInterface(config_path)
         self.evaluator = QuantumOpticsEvaluator()
         self.generator = QuantumResearchGenerator()
         self.logger = logging.getLogger('QuantumResearchEvolver')
@@ -154,10 +156,13 @@ class QuantumResearchEvolver:
         # Convert to solutions
         for i, prompt in enumerate(initial_prompts):
             # Generate research content using LLM
-            generation_result = self.llm.generate_research(
-                prompt.content, 
-                prompt.system_prompt
-            )
+            if self.demo_mode:
+                generation_result = self._generate_demo_research(prompt.category)
+            else:
+                generation_result = self.llm.generate_research(
+                    prompt.content, 
+                    prompt.system_prompt
+                )
             
             # Parse and structure the generated content
             solution_data = self._parse_generated_content(generation_result.content, prompt.category)
@@ -230,14 +235,17 @@ class QuantumResearchEvolver:
                 # Adapt prompt for current model
                 adapted_prompt = self.generator.adapt_prompt_for_model(
                     prompt, 
-                    self.llm.model_config.get('reasoning_style', 'analytical')
+                    'analytical' if self.demo_mode else self.llm.model_config.get('reasoning_style', 'analytical')
                 )
                 
                 # Generate research content
-                generation_result = self.llm.generate_research(
-                    adapted_prompt.content,
-                    adapted_prompt.system_prompt
-                )
+                if self.demo_mode:
+                    generation_result = self._generate_demo_research(prompt.category)
+                else:
+                    generation_result = self.llm.generate_research(
+                        adapted_prompt.content,
+                        adapted_prompt.system_prompt
+                    )
                 
                 # Parse generated content
                 solution_data = self._parse_generated_content(generation_result.content, prompt.category)
@@ -358,6 +366,46 @@ class QuantumResearchEvolver:
         # Combine factors
         diversity_score = 1.0 - category_penalty - avg_similarity
         return max(0.0, diversity_score)
+    
+    def _generate_demo_research(self, category: str) -> 'GenerationResult':
+        """Generate mock research content for demo mode"""
+        import random
+        
+        demo_contents = {
+            'cavity_qed': [
+                "# Strong Coupling Cavity QED System\n\nA novel cavity QED configuration achieving g/κ = 15.2 through optimized mirror curvature R = 5.2 mm and cavity length L = 12.8 μm. The system operates with 87Rb atoms at λ = 780 nm, demonstrating coherent atom-photon interactions with cooperativity C = 8.7.",
+                "# Ultra-High Finesse Optical Cavity\n\nDemonstration of F = 850,000 finesse cavity using crystalline coating technology. Cavity supports strong coupling regime with single atoms, enabling quantum state transfer efficiency η = 0.94. Operating parameters: wavelength 637 nm, cavity length 380 μm."
+            ],
+            'squeezed_light': [
+                "# Quadrature Squeezed Light Generation\n\nGeneration of -12.3 dB quadrature squeezed vacuum using PPKTP crystal in optical parametric oscillator. Pump power P = 2.1 W at 775 nm, cavity finesse F = 185. Measured squeezing bandwidth Δf = 8.5 MHz with detection efficiency η = 0.89.",
+                "# Spin Squeezed Atomic Ensemble\n\nSpin squeezing parameter ξ² = 0.31 achieved in ensemble of 10⁶ cold 87Rb atoms using one-axis twisting. Interaction strength χ = 2π × 0.8 Hz, squeezing time t = 165 ms. Demonstrates 5.1 dB improvement in phase sensitivity."
+            ],
+            'photon_blockade': [
+                "# Quantum Dot Photon Blockade\n\nStrong photon blockade in InAs quantum dot with g = 12.4 μeV, κ = 8.1 μeV, γ = 1.2 μeV. Second-order correlation g²(0) = 0.03 at resonance. System operates at 4.2 K with single photon purity > 99.7%.",
+                "# Atom-Cavity Photon Blockade\n\nUnconventional photon blockade in weakly coupled atom-cavity system. Cooperativity C = 0.12, detuning Δ = 2.5κ. Demonstrates antibunching g²(0) = 0.18 through destructive interference of two-photon pathways."
+            ],
+            'quantum_metrology': [
+                "# Atomic Interferometry Gravimeter\n\nCold atom gravimeter achieving sensitivity Δg/g = 3.2 × 10⁻⁹ using 87Rb atoms. Interrogation time T = 800 ms, free-fall height h = 1.2 m. Shot-noise limited performance with 10⁶ atoms per measurement cycle.",
+                "# Optical Clock with Entangled Atoms\n\nStrontium optical lattice clock with Ramsey spectroscopy using spin-squeezed ensemble. Achieves fractional frequency stability σ_y(τ) = 1.4 × 10⁻¹⁸/√τ. Clock laser at 698 nm with linewidth < 1 Hz."
+            ],
+            'optomechanics': [
+                "# Ground State Cooling Optomechanics\n\nSideband cooling of 42 MHz mechanical mode to n̄ = 0.07 phonons using cavity optomechanics. Cooperativity C = 2.1, effective detuning Δ_eff = ω_m. Cavity finesse F = 14,000, input power P = 120 μW.",
+                "# Squeezed Mechanical Motion\n\nGeneration of mechanical squeezed states in levitated nanoparticle. Squeezing parameter r = 0.8, mechanical frequency ω_m = 2π × 150 kHz. Feedback cooling to motional ground state followed by parametric driving."
+            ]
+        }
+        
+        content = random.choice(demo_contents.get(category, demo_contents['cavity_qed']))
+        
+        # Return mock GenerationResult
+        from llm_interface import GenerationResult
+        return GenerationResult(
+            content=content,
+            model="demo-mode",
+            tokens_used=random.randint(200, 800),
+            cost_estimate=0.0,
+            generation_time=random.uniform(0.5, 2.0),
+            metadata={'demo_mode': True}
+        )
         
     def _calculate_content_similarity(self, content1: str, content2: str) -> float:
         """Calculate simple content similarity between two solutions"""
@@ -488,7 +536,7 @@ class QuantumResearchEvolver:
     def _load_seed_research(self) -> Dict[str, Any]:
         """Load seed research data"""
         try:
-            with open('data/seed_research.json', 'r') as f:
+            with open('data/seed_research.json', 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
             self.logger.warning(f"Could not load seed research: {e}")

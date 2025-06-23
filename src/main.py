@@ -63,7 +63,7 @@ def main():
         logger.info("🛑 Process interrupted by user")
         sys.exit(0)
     except Exception as e:
-        logger.error(f"💥 Fatal error: {e}")
+        logger.error(f"FATAL ERROR: {e}")
         sys.exit(1)
 
 def create_argument_parser() -> argparse.ArgumentParser:
@@ -97,6 +97,8 @@ Examples:
                               help='Focus on specific category (cavity_qed, squeezed_light, etc.)')
     evolve_parser.add_argument('--save-interval', type=int, default=5,
                               help='Save progress every N generations (default: 5)')
+    evolve_parser.add_argument('--demo', action='store_true',
+                              help='Demo mode: use mock responses instead of API calls')
     evolve_parser.add_argument('--output-dir', type=str, default='results',
                               help='Output directory for results (default: results)')
     
@@ -190,7 +192,7 @@ def run_evolution(args: argparse.Namespace, logger) -> None:
     logger.info(f"🧬 Starting evolution with {args.generations} generations")
     
     # Initialize evolution controller
-    evolver = QuantumResearchEvolver(args.config)
+    evolver = QuantumResearchEvolver(args.config, demo_mode=getattr(args, 'demo', False))
     
     # Switch model if specified
     if args.model:
@@ -301,7 +303,7 @@ def run_evaluation(args: argparse.Namespace, logger) -> None:
     
     # Load content
     if Path(args.content).exists():
-        with open(args.content, 'r') as f:
+        with open(args.content, 'r', encoding='utf-8') as f:
             content = f.read()
         logger.info(f"Loaded content from: {args.content}")
     else:

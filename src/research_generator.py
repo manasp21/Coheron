@@ -30,7 +30,7 @@ class QuantumResearchGenerator:
     def _load_prompts(self) -> Dict[str, Any]:
         """Load prompt configuration"""
         try:
-            with open(self.prompts_path, 'r') as f:
+            with open(self.prompts_path, 'r', encoding='utf-8') as f:
                 return yaml.safe_load(f)
         except Exception as e:
             self.logger.error(f"Failed to load prompts from {self.prompts_path}: {e}")

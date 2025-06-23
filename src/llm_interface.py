@@ -40,7 +40,7 @@ class OpenRouterInterface:
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration with error handling"""
         try:
-            with open(self.config_path, 'r') as f:
+            with open(self.config_path, 'r', encoding='utf-8') as f:
                 config = yaml.safe_load(f)
             
             # Validate required fields
@@ -316,7 +316,7 @@ class OpenRouterInterface:
     def load_stats(self, filepath: str = "data/usage_stats.json") -> None:
         """Load usage statistics from file"""
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 self.stats = json.load(f)
         except FileNotFoundError:
             self.logger.info("No existing stats file found, starting fresh")
