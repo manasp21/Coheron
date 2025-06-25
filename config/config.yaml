@@ -3,28 +3,28 @@
 
 # API Configuration
 api:
-  provider: "openrouter"
-  api_key: "${OPENROUTER_API_KEY}"  # Environment variable
-  base_url: "https://openrouter.ai/api/v1"
+  provider: "a4f"
+  api_key: "${A4F_API_KEY}"  # Environment variable
+  base_url: "https://api.a4f.co/v1"
   timeout: 300
   max_retries: 3
 
 # Current Model (Change this line to switch models instantly)
-current_model: "deepseek/deepseek-r1-0528:free"
+current_model: "provider-5/gemini-2.5-flash-preview-04-17"
 
 # Model Definitions (Add new models here)
 models:
-  # DeepSeek Models
-  "deepseek/deepseek-r1-0528:free":
+  # A4F Models
+  "provider-5/gemini-2.5-flash-preview-04-17":
     temperature: 0.7
     max_tokens: 4000
     top_p: 0.9
     reasoning_style: "step_by_step"
     physics_strength: "high"
-    cost_per_token: 0.0
-    description: "Free DeepSeek R1 model - good for testing"
+    cost_per_token: 0.001
+    description: "Gemini 2.5 Flash Preview via A4F"
     
-  "deepseek/deepseek-r1":
+  "provider-1/chatgpt-4o-latest":
     temperature: 0.6
     max_tokens: 8000
     top_p: 0.95

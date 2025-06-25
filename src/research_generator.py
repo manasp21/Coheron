@@ -19,8 +19,8 @@ class QuantumResearchGenerator:
     
     def __init__(self, prompts_path: str = "config/prompts.yaml"):
         self.prompts_path = Path(prompts_path)
-        self.prompts_config = self._load_prompts()
         self.logger = logging.getLogger('QuantumResearchGenerator')
+        self.prompts_config = self._load_prompts()
         
         # Extract prompt categories and templates
         self.categories = self.prompts_config.get('categories', {})
@@ -28,13 +28,83 @@ class QuantumResearchGenerator:
         self.model_prompts = self.prompts_config.get('model_specific_prompts', {})
         
     def _load_prompts(self) -> Dict[str, Any]:
-        """Load prompt configuration"""
+        """Load prompt configuration with validation"""
         try:
             with open(self.prompts_path, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f)
+                config = yaml.safe_load(f)
+            
+            # Validate the configuration structure
+            self._validate_prompts_config(config)
+            return config
+            
         except Exception as e:
             self.logger.error(f"Failed to load prompts from {self.prompts_path}: {e}")
             return self._get_default_prompts()
+    
+    def _validate_prompts_config(self, config: Dict[str, Any]) -> None:
+        """Validate prompts configuration for template consistency"""
+        try:
+            # Check required sections
+            required_sections = ['categories', 'evolution_prompts']
+            for section in required_sections:
+                if section not in config:
+                    self.logger.warning(f"Missing required section: {section}")
+            
+            # Validate evolution prompts templates
+            if 'evolution_prompts' in config:
+                evolution_prompts = config['evolution_prompts']
+                
+                # Check mutation strategies templates
+                if 'mutation_strategies' in evolution_prompts:
+                    for strategy, templates in evolution_prompts['mutation_strategies'].items():
+                        for i, template in enumerate(templates):
+                            try:
+                                # Test template with dummy variables
+                                test_vars = {
+                                    'system_description': 'test',
+                                    'parameter_name': 'test',
+                                    'objective_function': 'test',
+                                    'constraint': 'test',
+                                    'new_environment': 'test',
+                                    'scale_factor': '1',
+                                    'particle_number': '100',
+                                    'approach_1': 'test',
+                                    'approach_2': 'test',
+                                    'field_1': 'test',
+                                    'field_2': 'test'
+                                }
+                                template.format(**test_vars)
+                            except KeyError as e:
+                                self.logger.warning(f"Template validation failed for {strategy}[{i}]: missing variable {e}")
+                            except Exception as e:
+                                self.logger.warning(f"Template validation error for {strategy}[{i}]: {e}")
+                
+                # Check exploration prompts templates
+                if 'exploration_prompts' in evolution_prompts:
+                    for strategy, templates in evolution_prompts['exploration_prompts'].items():
+                        for i, template in enumerate(templates):
+                            try:
+                                # Test template with dummy variables
+                                test_vars = {
+                                    'application_area': 'test',
+                                    'quantum_system_type': 'test',
+                                    'exotic_material': 'test',
+                                    'unusual_geometry': 'test',
+                                    'biological_system': 'test',
+                                    'classical_analog': 'test',
+                                    'other_field': 'test',
+                                    'other_physics_field': 'test'
+                                }
+                                template.format(**test_vars)
+                            except KeyError as e:
+                                self.logger.warning(f"Exploration template validation failed for {strategy}[{i}]: missing variable {e}")
+                            except Exception as e:
+                                self.logger.warning(f"Exploration template validation error for {strategy}[{i}]: {e}")
+            
+            self.logger.info("Prompts configuration validation completed")
+            
+        except Exception as e:
+            self.logger.warning(f"Prompts validation failed: {e}")
             
     def generate_initial_prompts(self, num_prompts: int = 10) -> List[ResearchPrompt]:
         """Generate initial research prompts from base categories"""
@@ -67,32 +137,73 @@ class QuantumResearchGenerator:
     def mutate_solution(self, solution: Dict[str, Any], mutation_strategies: List[str] = None) -> ResearchPrompt:
         """Generate mutated research prompt from existing solution"""
         
-        if mutation_strategies is None:
-            mutation_strategies = list(self.evolution_prompts.get('mutation_strategies', {}).keys())
+        try:
+            if mutation_strategies is None:
+                available_strategies = list(self.evolution_prompts.get('mutation_strategies', {}).keys())
+                if not available_strategies:
+                    # Fallback if no strategies available
+                    mutation_strategies = ['parameter_mutation']
+                else:
+                    mutation_strategies = available_strategies
+                
+            # Select random mutation strategy
+            strategy = random.choice(mutation_strategies)
             
-        # Select random mutation strategy
-        strategy = random.choice(mutation_strategies)
-        mutation_templates = self.evolution_prompts['mutation_strategies'][strategy]
-        
-        # Select random template
-        template = random.choice(mutation_templates)
-        
-        # Extract information from solution for mutation
+            # Get mutation templates for the strategy
+            if strategy not in self.evolution_prompts.get('mutation_strategies', {}):
+                # Fallback if strategy not found
+                self.logger.warning(f"Mutation strategy {strategy} not found. Using fallback.")
+                mutation_prompt = self._create_fallback_mutation(solution)
+            else:
+                mutation_templates = self.evolution_prompts['mutation_strategies'][strategy]
+                if not mutation_templates:
+                    # Fallback if no templates
+                    mutation_prompt = self._create_fallback_mutation(solution)
+                else:
+                    # Select random template
+                    template = random.choice(mutation_templates)
+                    
+                    # Extract information from solution for mutation
+                    system_description = self._extract_system_description(solution)
+                    
+                    # Generate mutation prompt based on strategy
+                    mutation_prompt = self._apply_mutation_strategy(template, strategy, solution, system_description)
+            
+            category = solution.get('category', 'general')
+            system_prompt = self._get_system_prompt_for_category(category)
+            
+            return ResearchPrompt(
+                content=mutation_prompt,
+                category=category,
+                system_prompt=system_prompt,
+                mutation_type=strategy,
+                parent_id=solution.get('id'),
+                generation=solution.get('generation', 0) + 1
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Failed to mutate solution: {e}. Using fallback.")
+            return self._create_fallback_prompt(solution, 'mutation')
+    
+    def _create_fallback_mutation(self, solution: Dict[str, Any]) -> str:
+        """Create fallback mutation prompt when templates fail"""
         system_description = self._extract_system_description(solution)
-        category = solution.get('category', 'general')
-        
-        # Generate mutation prompt based on strategy
-        mutation_prompt = self._apply_mutation_strategy(template, strategy, solution, system_description)
-        
-        # Get appropriate system prompt for category
-        system_prompt = self._get_system_prompt_for_category(category)
+        return f"Improve and modify the following quantum optical system: {system_description}. Focus on enhancing its quantum properties and performance characteristics."
+    
+    def _create_fallback_prompt(self, solution: Dict[str, Any], prompt_type: str) -> ResearchPrompt:
+        """Create fallback research prompt when all else fails"""
+        category = solution.get('category', 'cavity_qed')
+        if prompt_type == 'mutation':
+            content = self._create_fallback_mutation(solution)
+        else:
+            content = f"Design an innovative quantum optical system in the {category} domain."
         
         return ResearchPrompt(
-            content=mutation_prompt,
+            content=content,
             category=category,
-            system_prompt=system_prompt,
-            mutation_type=strategy,
-            parent_id=solution.get('id'),
+            system_prompt=self._get_system_prompt_for_category(category),
+            mutation_type=f'fallback_{prompt_type}',
+            parent_id=solution.get('id', 'unknown'),
             generation=solution.get('generation', 0) + 1
         )
         
@@ -107,13 +218,22 @@ class QuantumResearchGenerator:
         fusion_templates = self.evolution_prompts['mutation_strategies']['concept_fusion']
         template = random.choice(fusion_templates)
         
-        # Create crossover prompt
-        crossover_prompt = template.format(
-            approach_1=concept1,
-            approach_2=concept2,
-            field_1=solution1.get('category', 'quantum optics'),
-            field_2=solution2.get('category', 'quantum optics')
-        )
+        # Create crossover prompt with proper template variables
+        try:
+            # Prepare all possible template variables
+            template_vars = {
+                'approach_1': concept1,
+                'approach_2': concept2,
+                'field_1': solution1.get('category', 'quantum optics').replace('_', ' '),
+                'field_2': solution2.get('category', 'quantum optics').replace('_', ' ')
+            }
+            
+            crossover_prompt = template.format(**template_vars)
+            
+        except (KeyError, AttributeError) as e:
+            # Fallback if template doesn't have expected placeholders
+            self.logger.warning(f"Template formatting failed: {e}. Using fallback.")
+            crossover_prompt = f"Combine these two quantum optics approaches: {concept1} and {concept2}. Create a novel hybrid system that leverages the strengths of both approaches."
         
         # Choose dominant category
         category = random.choice([solution1.get('category', 'general'), solution2.get('category', 'general')])
@@ -159,102 +279,118 @@ class QuantumResearchGenerator:
     def _apply_mutation_strategy(self, template: str, strategy: str, solution: Dict[str, Any], system_description: str) -> str:
         """Apply specific mutation strategy to generate prompt"""
         
-        if strategy == 'parameter_mutation':
-            # Extract a parameter to mutate
-            parameters = solution.get('system_parameters', {})
-            if parameters:
-                param_name = random.choice(list(parameters.keys()))
-                objective = self._get_random_objective()
-                return template.format(
-                    system_description=system_description,
-                    parameter_name=param_name,
-                    objective_function=objective
-                )
-            else:
-                return template.format(
-                    system_description=system_description,
-                    parameter_name="coupling strength",
-                    objective_function="quantum efficiency"
-                )
+        try:
+            if strategy == 'parameter_mutation':
+                # Extract a parameter to mutate
+                parameters = solution.get('system_parameters', {})
+                if parameters:
+                    param_name = random.choice(list(parameters.keys()))
+                    objective = self._get_random_objective()
+                else:
+                    param_name = "coupling strength"
+                    objective = "quantum efficiency"
                 
-        elif strategy == 'constraint_exploration':
-            constraint = self._get_random_constraint()
-            environment = self._get_random_environment()
-            return template.format(
-                constraint=constraint,
-                system_description=system_description,
-                new_environment=environment
-            )
-            
-        elif strategy == 'scale_variation':
-            scale_factor = random.choice([0.1, 0.5, 2, 10, 100])
-            particle_number = random.choice([10, 100, 1000, 10000])
-            return template.format(
-                system_description=system_description,
-                scale_factor=scale_factor,
-                particle_number=particle_number
-            )
-            
-        else:
-            # Default case - return template with system description
-            return template.format(system_description=system_description)
+                template_vars = {
+                    'system_description': system_description,
+                    'parameter_name': param_name,
+                    'objective_function': objective
+                }
+                return template.format(**template_vars)
+                    
+            elif strategy == 'constraint_exploration':
+                constraint = self._get_random_constraint()
+                environment = self._get_random_environment()
+                template_vars = {
+                    'constraint': constraint,
+                    'system_description': system_description,
+                    'new_environment': environment
+                }
+                return template.format(**template_vars)
+                
+            elif strategy == 'scale_variation':
+                scale_factor = random.choice([0.1, 0.5, 2, 10, 100])
+                particle_number = random.choice([10, 100, 1000, 10000])
+                template_vars = {
+                    'system_description': system_description,
+                    'scale_factor': scale_factor,
+                    'particle_number': particle_number
+                }
+                return template.format(**template_vars)
+                
+            else:
+                # Default case - return template with system description
+                return template.format(system_description=system_description)
+                
+        except (KeyError, AttributeError) as e:
+            # Fallback for any template formatting issues
+            self.logger.warning(f"Template formatting failed for {strategy}: {e}. Using fallback.")
+            return f"Modify and improve the following quantum optical system: {system_description}. Focus on enhancing its performance and exploring new capabilities."
             
     def _fill_exploration_template(self, template: str, strategy: str) -> str:
         """Fill exploration template with random parameters"""
         
-        if strategy == 'novel_phenomena':
-            application_area = random.choice([
-                'quantum computing', 'quantum sensing', 'quantum communication',
-                'quantum metrology', 'quantum simulation', 'quantum cryptography'
-            ])
-            quantum_system_type = random.choice([
-                'cavity QED systems', 'optomechanical systems', 'atomic ensembles',
-                'photonic systems', 'hybrid quantum systems'
-            ])
-            return template.format(
-                application_area=application_area,
-                quantum_system_type=quantum_system_type
-            )
+        try:
+            if strategy == 'novel_phenomena':
+                application_area = random.choice([
+                    'quantum computing', 'quantum sensing', 'quantum communication',
+                    'quantum metrology', 'quantum simulation', 'quantum cryptography'
+                ])
+                quantum_system_type = random.choice([
+                    'cavity QED systems', 'optomechanical systems', 'atomic ensembles',
+                    'photonic systems', 'hybrid quantum systems'
+                ])
+                template_vars = {
+                    'application_area': application_area,
+                    'quantum_system_type': quantum_system_type
+                }
+                return template.format(**template_vars)
+                
+            elif strategy == 'unconventional_systems':
+                exotic_material = random.choice([
+                    'graphene', 'metamaterials', 'photonic crystals', 'superconducting circuits',
+                    'diamond NV centers', 'quantum dots', 'topological insulators'
+                ])
+                unusual_geometry = random.choice([
+                    'fractal structures', 'chiral geometries', 'twisted configurations',
+                    'ring resonators', 'spiral cavities', 'hierarchical arrays'
+                ])
+                biological_system = random.choice([
+                    'photosynthetic complexes', 'microtubules', 'protein folding',
+                    'neural networks', 'bird navigation', 'enzyme catalysis'
+                ])
+                classical_analog = random.choice([
+                    'pendulum oscillators', 'coupled springs', 'wave interference',
+                    'acoustic resonators', 'electronic circuits', 'fluid dynamics'
+                ])
+                template_vars = {
+                    'exotic_material': exotic_material,
+                    'unusual_geometry': unusual_geometry,
+                    'biological_system': biological_system,
+                    'classical_analog': classical_analog
+                }
+                return template.format(**template_vars)
+                
+            elif strategy == 'interdisciplinary':
+                other_field = random.choice([
+                    'condensed matter physics', 'astrophysics', 'biophysics',
+                    'materials science', 'chemistry', 'neuroscience'
+                ])
+                other_physics_field = random.choice([
+                    'high energy physics', 'general relativity', 'statistical mechanics',
+                    'plasma physics', 'solid state physics', 'nuclear physics'
+                ])
+                template_vars = {
+                    'other_field': other_field,
+                    'other_physics_field': other_physics_field
+                }
+                return template.format(**template_vars)
+                
+        except (KeyError, AttributeError) as e:
+            # Fallback for any template formatting issues
+            self.logger.warning(f"Exploration template formatting failed for {strategy}: {e}. Using fallback.")
+            return f"Explore novel quantum optics approaches in the {strategy} domain. Focus on breakthrough physics and innovative applications."
             
-        elif strategy == 'unconventional_systems':
-            exotic_material = random.choice([
-                'graphene', 'metamaterials', 'photonic crystals', 'superconducting circuits',
-                'diamond NV centers', 'quantum dots', 'topological insulators'
-            ])
-            unusual_geometry = random.choice([
-                'fractal structures', 'chiral geometries', 'twisted configurations',
-                'ring resonators', 'spiral cavities', 'hierarchical arrays'
-            ])
-            biological_system = random.choice([
-                'photosynthetic complexes', 'microtubules', 'protein folding',
-                'neural networks', 'bird navigation', 'enzyme catalysis'
-            ])
-            classical_analog = random.choice([
-                'pendulum oscillators', 'coupled springs', 'wave interference',
-                'acoustic resonators', 'electronic circuits', 'fluid dynamics'
-            ])
-            return template.format(
-                exotic_material=exotic_material,
-                unusual_geometry=unusual_geometry,
-                biological_system=biological_system,
-                classical_analog=classical_analog
-            )
-            
-        elif strategy == 'interdisciplinary':
-            other_field = random.choice([
-                'condensed matter physics', 'astrophysics', 'biophysics',
-                'materials science', 'chemistry', 'neuroscience'
-            ])
-            other_physics_field = random.choice([
-                'high energy physics', 'general relativity', 'statistical mechanics',
-                'plasma physics', 'solid state physics', 'nuclear physics'
-            ])
-            return template.format(
-                other_field=other_field,
-                other_physics_field=other_physics_field
-            )
-            
-        # Default - return template as is
+        # Default - return template as is if no specific strategy matches
         return template
         
     def _extract_system_description(self, solution: Dict[str, Any]) -> str:
@@ -273,25 +409,42 @@ class QuantumResearchGenerator:
     def _extract_key_concepts(self, solution: Dict[str, Any]) -> str:
         """Extract key physical concepts from solution"""
         title = solution.get('title', '')
-        framework = solution.get('theoretical_framework', '')
+        description = solution.get('description', '')
+        content = solution.get('content', '')
         category = solution.get('category', '')
         
-        # Extract key terms from title and framework
-        key_terms = []
+        # Try to extract meaningful concepts from title first
+        if title and len(title.strip()) > 0:
+            return title.strip()
         
-        if title:
-            key_terms.extend(title.lower().split())
-        if framework:
-            key_terms.extend(framework.lower().split())
-            
-        # Filter for physics-relevant terms
-        physics_terms = [term for term in key_terms if len(term) > 3 and 
-                        any(keyword in term for keyword in ['quantum', 'optical', 'cavity', 'atom', 'photon', 'coupling', 'squeezing'])]
+        # If no title, try description
+        if description and len(description.strip()) > 0:
+            # Take first sentence or up to 100 chars
+            first_part = description.split('.')[0]
+            if len(first_part) <= 100:
+                return first_part.strip()
+            else:
+                return description[:100].strip() + "..."
         
-        if physics_terms:
-            return ' '.join(physics_terms[:5])  # Top 5 terms
-        else:
-            return f"{category} quantum optical approach"
+        # If no description, try content
+        if content and len(content.strip()) > 0:
+            # Take first line or up to 150 chars
+            first_line = content.split('\n')[0]
+            if len(first_line) <= 150:
+                return first_line.strip()
+            else:
+                return content[:150].strip() + "..."
+        
+        # Fallback based on category
+        category_defaults = {
+            'cavity_qed': 'cavity QED system with strong atom-photon coupling',
+            'squeezed_light': 'squeezed light generation using parametric processes',
+            'photon_blockade': 'photon blockade in nonlinear optical systems',
+            'quantum_metrology': 'quantum-enhanced sensing and metrology',
+            'optomechanics': 'optomechanical coupling and cooling'
+        }
+        
+        return category_defaults.get(category, f"{category} quantum optical system")
             
     def _get_system_prompt_for_category(self, category: str) -> str:
         """Get appropriate system prompt for research category"""

@@ -116,7 +116,7 @@ evolution_prompts:
     
     concept_fusion:
       - "Combine these two quantum optics approaches creatively: {approach_1} and {approach_2}. Create a hybrid system that leverages advantages of both."
-      - "Merge concepts from {field_1} and {field_2} to create novel quantum optical system. Focus on unexpected synergies and emergent phenomena."
+      - "Merge concepts from {approach_1} and {approach_2} to create novel quantum optical system. Focus on unexpected synergies and emergent phenomena from {field_1} and {field_2} domains."
     
     constraint_exploration:
       - "Design quantum optical system with the constraint: {constraint}. Find creative solutions that work within this limitation."

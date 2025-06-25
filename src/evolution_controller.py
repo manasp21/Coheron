@@ -7,7 +7,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 import numpy as np
 
-from llm_interface import OpenRouterInterface, GenerationResult
+from llm_interface import A4FInterface, GenerationResult
 from evaluator import QuantumOpticsEvaluator, EvaluationResult
 from research_generator import QuantumResearchGenerator, ResearchPrompt
 
@@ -42,21 +42,31 @@ class QuantumResearchEvolver:
     def __init__(self, config_path: str = "config/config.yaml", demo_mode: bool = False):
         # Initialize core components
         self.demo_mode = demo_mode
-        if not demo_mode:
-            self.llm = OpenRouterInterface(config_path)
-        self.evaluator = QuantumOpticsEvaluator()
-        self.generator = QuantumResearchGenerator()
         self.logger = logging.getLogger('QuantumResearchEvolver')
         
+        if not demo_mode:
+            self.llm = A4FInterface(config_path)
+        else:
+            self.llm = None
+            
+        self.evaluator = QuantumOpticsEvaluator()
+        self.generator = QuantumResearchGenerator()
+        
         # Load evolution parameters
-        self.config = self.llm.config
+        if not demo_mode:
+            self.config = self.llm.config
+        else:
+            import yaml
+            with open(Path(config_path), 'r', encoding='utf-8') as f:
+                self.config = yaml.safe_load(f)
+        
         self.evolution_params = self.config.get('evolution', {})
         self.evaluation_params = self.config.get('evaluation', {})
         
         # Evolution state
         self.current_generation = 0
         self.population: List[ResearchSolution] = []
-        self.evolution_history: List[EvolutionStats] = []
+        self.evolution_history: List[Dict[str, Any]] = []
         self.best_solutions: List[ResearchSolution] = []
         self.breakthrough_solutions: List[ResearchSolution] = []
         
@@ -75,17 +85,16 @@ class QuantumResearchEvolver:
         
     def evolve_research(self, num_generations: Optional[int] = None) -> List[ResearchSolution]:
         """Main evolution loop for quantum optics research discovery"""
-        
         if num_generations is None:
             num_generations = self.max_generations
             
         self.logger.info(f"Starting quantum optics research evolution for {num_generations} generations")
-        self.logger.info(f"Population size: {self.population_size}, Model: {self.llm.current_model}")
+        model_name = "demo-mode" if self.demo_mode else (self.llm.current_model if self.llm else "unknown")
+        self.logger.info(f"Population size: {self.population_size}, Model: {model_name}")
         
         # Initialize population
         if not self.population:
             self._initialize_population()
-            
         start_time = time.time()
         stagnation_counter = 0
         previous_best_score = 0.0
@@ -105,7 +114,7 @@ class QuantumResearchEvolver:
             
             # Calculate generation statistics
             stats = self._calculate_generation_stats(generation + 1)
-            self.evolution_history.append(stats)
+            self.evolution_history.append(asdict(stats))
             
             # Check for breakthroughs
             breakthroughs = self._identify_breakthroughs()
@@ -420,17 +429,19 @@ class QuantumResearchEvolver:
         union = words1.union(words2)
         
         return len(intersection) / len(union) if union else 0.0
+    
         
     def _calculate_generation_stats(self, generation: int) -> EvolutionStats:
         """Calculate comprehensive statistics for current generation"""
         if not self.population:
-            return EvolutionStats(generation, 0, 0, 0, 0, 0, 0, 0)
-            
+            return EvolutionStats(generation, 0, 0.0, 0.0, 0.0, 0, 0, 0.0)
+        
+        # Extract scores
         scores = [sol.evaluation_result.total_score for sol in self.population]
         
         # Basic statistics
         best_score = max(scores)
-        average_score = np.mean(scores)
+        average_score = float(np.mean(scores))
         
         # Diversity index (based on category distribution)
         categories = [sol.category for sol in self.population]
@@ -446,7 +457,7 @@ class QuantumResearchEvolver:
         # Convergence rate (improvement over last generation)
         convergence_rate = 0.0
         if len(self.evolution_history) > 0:
-            prev_best = self.evolution_history[-1].best_score
+            prev_best = self.evolution_history[-1]['best_score']
             convergence_rate = (best_score - prev_best) / prev_best if prev_best > 0 else 0
             
         return EvolutionStats(
@@ -558,9 +569,14 @@ class QuantumResearchEvolver:
         self.logger.info(f"\n🎯 Evolution Complete!")
         self.logger.info(f"   Total Generations: {len(self.evolution_history)}")
         self.logger.info(f"   Total Time: {total_time:.1f}s")
-        self.logger.info(f"   Best Score: {self.best_solutions[0].evaluation_result.total_score:.3f}")
+        if self.population:
+            best_solution = max(self.population, key=lambda x: x.evaluation_result.total_score)
+            self.logger.info(f"   Best Score: {best_solution.evaluation_result.total_score:.3f}")
+        else:
+            self.logger.info(f"   Best Score: N/A")
         self.logger.info(f"   Breakthroughs: {len(self.breakthrough_solutions)}")
-        self.logger.info(f"   Model Used: {self.llm.current_model}")
+        model_used = "demo-mode" if self.demo_mode else (self.llm.current_model if self.llm else "unknown")
+        self.logger.info(f"   Model Used: {model_used}")
         
     def get_evolution_summary(self) -> Dict[str, Any]:
         """Get comprehensive evolution summary"""
@@ -569,13 +585,13 @@ class QuantumResearchEvolver:
             
         return {
             'total_generations': len(self.evolution_history),
-            'best_score': max(stats.best_score for stats in self.evolution_history),
-            'final_score': self.evolution_history[-1].best_score,
+            'best_score': max((stats['best_score'] for stats in self.evolution_history), default=0.0),
+            'final_score': self.evolution_history[-1]['best_score'] if self.evolution_history else 0.0,
             'total_breakthroughs': len(self.breakthrough_solutions),
-            'convergence_history': [stats.best_score for stats in self.evolution_history],
-            'diversity_history': [stats.diversity_index for stats in self.evolution_history],
-            'model_used': self.llm.current_model,
-            'best_solutions': [asdict(sol) for sol in self.best_solutions[:5]]
+            'convergence_history': [stats['best_score'] for stats in self.evolution_history],
+            'diversity_history': [stats['diversity_index'] for stats in self.evolution_history],
+            'model_used': "demo-mode" if self.demo_mode else (self.llm.current_model if self.llm else "unknown"),
+            'best_solutions': [asdict(sol) for sol in (self.best_solutions[:5] if self.best_solutions else [])]
         }
         
     def save_evolution_state(self, filepath: str = "data/evolution_state.json") -> None:
@@ -583,14 +599,14 @@ class QuantumResearchEvolver:
         state = {
             'current_generation': self.current_generation,
             'population': [asdict(sol) for sol in self.population],
-            'evolution_history': [asdict(stats) for stats in self.evolution_history],
+            'evolution_history': self.evolution_history,  # Already dictionaries
             'best_solutions': [asdict(sol) for sol in self.best_solutions],
             'breakthrough_solutions': [asdict(sol) for sol in self.breakthrough_solutions],
             'summary': self.get_evolution_summary()
         }
         
         Path(filepath).parent.mkdir(exist_ok=True)
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(state, f, indent=2)
             
         self.logger.info(f"💾 Evolution state saved to {filepath}")

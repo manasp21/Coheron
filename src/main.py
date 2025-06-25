@@ -12,17 +12,25 @@ import os
 import time
 from pathlib import Path
 from typing import Dict, List, Any, Optional
+from dataclasses import asdict
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv not available, skip loading
+    pass
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
 from evolution_controller import QuantumResearchEvolver
-from llm_interface import OpenRouterInterface
+from llm_interface import A4FInterface
 from evaluator import QuantumOpticsEvaluator
 from database import ResearchDatabase
 from utils import (
     setup_logging, validate_config, create_evolution_plot, 
-    create_category_analysis, export_results_report, format_duration
+    create_category_analysis, export_results_report, format_duration,
+    clean_unicode_for_console
 )
 
 def main():
@@ -31,7 +39,7 @@ def main():
     parser = create_argument_parser()
     args = parser.parse_args()
     
-    # Setup logging
+    # Setup logging with Unicode-safe handler
     log_file = "logs/quantum_research.log" if args.log_file else None
     logger = setup_logging(args.log_level, log_file)
     
@@ -164,11 +172,11 @@ Examples:
 def validate_environment() -> bool:
     """Validate environment and dependencies"""
     
-    # Check for OpenRouter API key
-    if not os.getenv('OPENROUTER_API_KEY'):
-        print("❌ Error: OPENROUTER_API_KEY environment variable not set")
-        print("   Please set your OpenRouter API key:")
-        print("   export OPENROUTER_API_KEY='your-api-key-here'")
+    # Check for A4F API key
+    if not os.getenv('A4F_API_KEY'):
+        print("❌ Error: A4F_API_KEY environment variable not set")
+        print("   Please set your A4F API key:")
+        print("   export A4F_API_KEY='your-api-key-here'")
         return False
     
     # Check required directories
@@ -196,12 +204,15 @@ def run_evolution(args: argparse.Namespace, logger) -> None:
     
     # Switch model if specified
     if args.model:
-        try:
-            evolver.llm.switch_model(args.model)
-            logger.info(f"Switched to model: {args.model}")
-        except ValueError as e:
-            logger.error(f"Model switch failed: {e}")
-            return
+        if getattr(args, 'demo', False):
+            logger.warning("Model switching not supported in demo mode")
+        else:
+            try:
+                evolver.llm.switch_model(args.model)
+                logger.info(f"Switched to model: {args.model}")
+            except ValueError as e:
+                logger.error(f"Model switch failed: {e}")
+                return
     
     # Override population size if specified
     if args.population:
@@ -214,7 +225,8 @@ def run_evolution(args: argparse.Namespace, logger) -> None:
     # Initialize database for tracking
     db = ResearchDatabase()
     
-    logger.info(f"Model: {evolver.llm.current_model}")
+    model_name = "demo-mode" if getattr(args, 'demo', False) else evolver.llm.current_model
+    logger.info(f"Model: {model_name}")
     logger.info(f"Population: {evolver.population_size}")
     logger.info(f"Category focus: {args.category or 'All categories'}")
     
@@ -262,15 +274,15 @@ def run_evolution(args: argparse.Namespace, logger) -> None:
             )
             
             create_category_analysis(
-                [vars(sol) for sol in best_solutions],
+                [asdict(sol) for sol in best_solutions],
                 output_dir / 'category_analysis.png'
             )
         
         # Generate report
         export_results_report(
-            [vars(stats) for stats in evolver.evolution_history],
-            [vars(sol) for sol in best_solutions[:10]],
-            [vars(sol) for sol in evolver.breakthrough_solutions],
+            evolver.evolution_history,  # Already dictionaries
+            [asdict(sol) for sol in best_solutions[:10]],
+            [asdict(sol) for sol in evolver.breakthrough_solutions],
             output_dir / 'research_report.json'
         )
         
@@ -280,17 +292,59 @@ def run_evolution(args: argparse.Namespace, logger) -> None:
         logger.info(f"✅ Evolution completed in {format_duration(total_time)}")
         logger.info(f"📊 Best score: {best_solutions[0].evaluation_result.total_score:.3f}")
         logger.info(f"🏆 Breakthroughs: {len(evolver.breakthrough_solutions)}")
-        logger.info(f"💾 Results saved to: {output_dir}")
         
-        # Display top results
+        # Show detailed results info (with ASCII-safe fallback)
+        def safe_print(text):
+            """Print text with ASCII fallback for Windows"""
+            try:
+                print(text)
+            except UnicodeEncodeError:
+                print(clean_unicode_for_console(text))
+        
+        safe_print(f"\n" + "="*60)
+        safe_print(f"🎉 COHERON EVOLUTION COMPLETE!")
+        safe_print(f"="*60)
+        safe_print(f"⏱️  Total time: {format_duration(total_time)}")
+        safe_print(f"🧬 Generations: {len(evolver.evolution_history)}")
+        safe_print(f"📊 Best score achieved: {best_solutions[0].evaluation_result.total_score:.3f}")
+        safe_print(f"🏆 Breakthroughs discovered: {len(evolver.breakthrough_solutions)}")
+        
+        # Show saved files
+        safe_print(f"\n📁 RESULTS SAVED TO:")
+        safe_print(f"   📂 Directory: {output_dir.absolute()}")
+        safe_print(f"   📄 Evolution state: evolution_state.json")
+        safe_print(f"   📄 Research report: research_report.json")
         if not args.quiet:
-            print(f"\n🏆 Top 3 Research Solutions:")
-            for i, solution in enumerate(best_solutions[:3]):
-                print(f"{i+1}. Score: {solution.evaluation_result.total_score:.3f}")
-                print(f"   Title: {solution.title}")
-                print(f"   Category: {solution.category}")
-                print(f"   Generation: {solution.generation}")
-                print()
+            safe_print(f"   📊 Evolution plot: evolution_progress.png")
+            safe_print(f"   📈 Category analysis: category_analysis.png")
+        
+        # Display top results with more detail
+        safe_print(f"\n🏆 TOP {min(3, len(best_solutions))} RESEARCH SOLUTIONS:")
+        safe_print("-" * 60)
+        for i, solution in enumerate(best_solutions[:3]):
+            safe_print(f"\n{i+1}. SCORE: {solution.evaluation_result.total_score:.3f}")
+            safe_print(f"   📋 TITLE: {solution.title}")
+            safe_print(f"   🔬 CATEGORY: {solution.category.replace('_', ' ').title()}")
+            safe_print(f"   🧬 GENERATION: {solution.generation}")
+            safe_print(f"   📊 BREAKDOWN:")
+            safe_print(f"      - Feasibility: {solution.evaluation_result.feasibility:.3f}")
+            safe_print(f"      - Mathematics: {solution.evaluation_result.mathematics:.3f}")
+            safe_print(f"      - Novelty: {solution.evaluation_result.novelty:.3f}")
+            safe_print(f"      - Performance: {solution.evaluation_result.performance:.3f}")
+            
+            # Show content preview
+            content_preview = solution.content[:200] + "..." if len(solution.content) > 200 else solution.content
+            safe_print(f"   📝 CONTENT PREVIEW:")
+            safe_print(f"      {content_preview}")
+        
+        # Show evolution progress
+        if len(evolver.evolution_history) > 1:
+            safe_print(f"\n📈 EVOLUTION PROGRESS:")
+            safe_print("-" * 40)
+            for i, stats in enumerate(evolver.evolution_history):
+                safe_print(f"   Gen {stats['generation']}: Best={stats['best_score']:.3f}, Avg={stats['average_score']:.3f}, Diversity={stats['diversity_index']:.3f}")
+        
+        logger.info(f"💾 All results saved to: {output_dir.absolute()}")
         
     except Exception as e:
         logger.error(f"Evolution failed: {e}")
@@ -355,7 +409,7 @@ def run_evaluation(args: argparse.Namespace, logger) -> None:
     # Save result if requested
     if args.save_result:
         result_data = {
-            'evaluation_result': vars(result),
+            'evaluation_result': asdict(result),
             'input_content': content,
             'category': args.category,
             'timestamp': time.time()
@@ -418,7 +472,7 @@ def run_test(args: argparse.Namespace, logger) -> None:
         print("Testing LLM interface...")
         tests_total += 1
         try:
-            llm = OpenRouterInterface(args.config)
+            llm = A4FInterface(args.config)
             if args.model:
                 llm.switch_model(args.model)
             
@@ -521,7 +575,7 @@ def run_benchmark(args: argparse.Namespace, logger) -> None:
         for model in models_to_test:
             print(f"\nTesting {model}...")
             try:
-                llm = OpenRouterInterface(args.config)
+                llm = A4FInterface(args.config)
                 llm.switch_model(model)
                 
                 start_time = time.time()
@@ -552,7 +606,7 @@ def run_benchmark(args: argparse.Namespace, logger) -> None:
             print(f"\nTesting: {prompt}")
             
             try:
-                llm = OpenRouterInterface(args.config)
+                llm = A4FInterface(args.config)
                 result = llm.generate_research(prompt)
                 
                 solution_data = {

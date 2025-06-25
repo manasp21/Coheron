@@ -11,6 +11,70 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+def clean_unicode_for_console(text: str) -> str:
+    """Clean Unicode characters (like emojis) for console output"""
+    if not isinstance(text, str):
+        text = str(text)
+    
+    # Replace common emojis with ASCII equivalents
+    emoji_replacements = {
+        '🚀': '[START]',
+        '🧬': '[EVOLUTION]', 
+        '📊': '[STATS]',
+        '🏆': '[BREAKTHROUGH]',
+        '💾': '[SAVED]',
+        '✅': '[SUCCESS]',
+        '❌': '[ERROR]',
+        '⚠️': '[WARNING]',
+        '🔍': '[SEARCH]',
+        '🧪': '[TEST]',
+        '🎯': '[TARGET]',
+        '📈': '[PROGRESS]',
+        '🌱': '[INIT]',
+        '🔧': '[FIX]',
+        '⚡': '[SPEED]',
+        '🎉': '[COMPLETE]',
+        '🛑': '[STOP]',
+        '📄': '[FILE]',
+        '📂': '[FOLDER]',
+        '📁': '[DIRECTORY]',
+        '🔬': '[SCIENCE]',
+        '⏱️': '[TIME]',
+        '💰': '[COST]',
+        '🏁': '[FINISH]',
+        '🔗': '[LINK]',
+        '📋': '[LIST]',
+        '📝': '[NOTE]',
+        '🌟': '[STAR]',
+        '💡': '[IDEA]'
+    }
+    
+    cleaned_text = text
+    
+    # Replace known emojis first
+    for emoji, replacement in emoji_replacements.items():
+        cleaned_text = cleaned_text.replace(emoji, replacement)
+    
+    # Handle any remaining Unicode characters
+    try:
+        # Try to encode as ASCII to check if it's safe
+        cleaned_text.encode('ascii')
+        return cleaned_text
+    except UnicodeEncodeError:
+        # Replace any remaining non-ASCII characters
+        result = []
+        for char in cleaned_text:
+            try:
+                char.encode('ascii')
+                result.append(char)
+            except UnicodeEncodeError:
+                # Replace with a safe placeholder
+                if ord(char) > 127:
+                    result.append('[?]')
+                else:
+                    result.append(char)
+        return ''.join(result)
+
 def setup_logging(log_level: str = "INFO", log_file: Optional[str] = None) -> logging.Logger:
     """Setup comprehensive logging for the quantum research system"""
     
@@ -21,22 +85,71 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[str] = None) -> lo
     # Clear existing handlers
     logger.handlers.clear()
     
-    # Create formatter
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
+    # Create Unicode-safe console handler for Windows
+    class UnicodeAwareHandler(logging.StreamHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            # Use ASCII-safe encoding for Windows console
+            if hasattr(self.stream, 'encoding') and self.stream.encoding:
+                self.encoding = self.stream.encoding
+            else:
+                self.encoding = 'ascii'
+        
+        def format(self, record):
+            """Format the record and clean Unicode before formatting"""
+            try:
+                # Clean the message before formatting
+                if hasattr(record, 'msg'):
+                    record.msg = clean_unicode_for_console(str(record.msg))
+                
+                # Format normally
+                formatted = super().format(record)
+                
+                # Clean the final formatted message as well
+                return clean_unicode_for_console(formatted)
+                
+            except Exception:
+                # If anything fails, return a simple cleaned message
+                try:
+                    msg = record.getMessage() if hasattr(record, 'getMessage') else str(record.msg)
+                    return clean_unicode_for_console(f"{record.levelname}: {msg}")
+                except:
+                    return "[LOG] Unicode error in log message"
+        
+        def emit(self, record):
+            """Emit the record with comprehensive Unicode handling"""
+            try:
+                # Format the record (this calls our custom format method)
+                msg = self.format(record)
+                
+                # Ensure the message is ASCII-safe
+                safe_msg = clean_unicode_for_console(msg)
+                
+                # Write directly to stream
+                self.stream.write(safe_msg + self.terminator)
+                self.flush()
+                
+            except Exception:
+                # Ultimate fallback - print directly
+                try:
+                    msg = record.getMessage() if hasattr(record, 'getMessage') else str(getattr(record, 'msg', 'Unknown log message'))
+                    safe_msg = clean_unicode_for_console(msg)
+                    print(f"[{record.levelname}] {safe_msg}")
+                except:
+                    print("[LOG] Error in logging system")
     
-    # Console handler
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter)
+    console_handler = UnicodeAwareHandler()
     logger.addHandler(console_handler)
     
-    # File handler if specified
+    # File handler if specified (always use UTF-8 for files)
     if log_file:
         Path(log_file).parent.mkdir(exist_ok=True)
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(formatter)
+        file_handler = logging.FileHandler(log_file, encoding='utf-8')
+        file_formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        file_handler.setFormatter(file_formatter)
         logger.addHandler(file_handler)
     
     return logger
@@ -494,3 +607,49 @@ def truncate_text(text: str, max_length: int = 100, suffix: str = "...") -> str:
     if len(text) <= max_length:
         return text
     return text[:max_length - len(suffix)] + suffix
+
+def create_safe_logger(logger: logging.Logger) -> logging.Logger:
+    """Create a logger wrapper that pre-cleans all Unicode messages"""
+    
+    class SafeLoggerWrapper:
+        def __init__(self, original_logger):
+            self.logger = original_logger
+        
+        def _safe_log(self, level, msg, *args, **kwargs):
+            """Clean message before logging"""
+            try:
+                # Always clean the message first
+                cleaned_msg = clean_unicode_for_console(str(msg))
+                
+                # Clean any args as well
+                cleaned_args = []
+                for arg in args:
+                    if isinstance(arg, str):
+                        cleaned_args.append(clean_unicode_for_console(arg))
+                    else:
+                        cleaned_args.append(arg)
+                
+                # Log with cleaned content
+                self.logger._log(level, cleaned_msg, tuple(cleaned_args), **kwargs)
+                
+            except Exception:
+                # Ultimate fallback
+                try:
+                    fallback_msg = f"[{logging.getLevelName(level)}] {clean_unicode_for_console(str(msg))}"
+                    print(fallback_msg)
+                except:
+                    print(f"[LOG] Error processing message at level {level}")
+        
+        def info(self, msg, *args, **kwargs):
+            self._safe_log(logging.INFO, msg, *args, **kwargs)
+        
+        def error(self, msg, *args, **kwargs):
+            self._safe_log(logging.ERROR, msg, *args, **kwargs)
+        
+        def warning(self, msg, *args, **kwargs):
+            self._safe_log(logging.WARNING, msg, *args, **kwargs)
+        
+        def debug(self, msg, *args, **kwargs):
+            self._safe_log(logging.DEBUG, msg, *args, **kwargs)
+    
+    return SafeLoggerWrapper(logger)

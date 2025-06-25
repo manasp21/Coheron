@@ -17,8 +17,8 @@ class GenerationResult:
     generation_time: float
     metadata: Dict[str, Any] = None
 
-class OpenRouterInterface:
-    """Complete OpenRouter interface with model switching and optimization"""
+class A4FInterface:
+    """Complete A4F API interface with model switching and optimization"""
     
     def __init__(self, config_path: str = "config/config.yaml"):
         self.config_path = Path(config_path)
@@ -54,10 +54,10 @@ class OpenRouterInterface:
             raise ValueError(f"Failed to load config from {self.config_path}: {e}")
             
     def _initialize_client(self) -> openai.OpenAI:
-        """Initialize OpenAI client with OpenRouter"""
-        api_key = os.getenv('OPENROUTER_API_KEY')
+        """Initialize OpenAI client with A4F API"""
+        api_key = os.getenv('A4F_API_KEY')
         if not api_key:
-            raise ValueError("OPENROUTER_API_KEY environment variable not set")
+            raise ValueError("A4F_API_KEY environment variable not set")
             
         return openai.OpenAI(
             base_url=self.config['api']['base_url'],
@@ -310,7 +310,7 @@ class OpenRouterInterface:
     def save_stats(self, filepath: str = "data/usage_stats.json") -> None:
         """Save usage statistics to file"""
         Path(filepath).parent.mkdir(exist_ok=True)
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(self.stats, f, indent=2)
             
     def load_stats(self, filepath: str = "data/usage_stats.json") -> None:
