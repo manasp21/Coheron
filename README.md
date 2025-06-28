@@ -8,17 +8,17 @@ Inspired by AlphaEvolve, Coheron uses advanced language models to generate, eval
 [![A4F API](https://img.shields.io/badge/A4F-Compatible-green.svg)](https://www.a4f.co/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🌟 Features
+## Key Features
 
-- **🧬 Evolutionary Research Discovery**: AlphaEvolve-inspired architecture for systematic research evolution
-- **🔬 Physics-Aware Evaluation**: Rigorous evaluation against analytical benchmarks and experimental feasibility
-- **🔄 Flexible Model Switching**: Easy switching between Gemini, Claude, GPT-4, and other models via A4F
-- **📊 Comprehensive Analytics**: Track research evolution, breakthrough discoveries, and model performance
-- **🎯 Specialized Categories**: Focus on cavity QED, squeezed light, photon blockade, quantum metrology, and optomechanics
-- **💾 Research Database**: SQLite-based storage for evolution tracking and lineage analysis
-- **🖥️ Windows Compatible**: Unicode-safe logging and console output for all platforms
+- **Evolutionary Research Discovery**: AlphaEvolve-inspired architecture for systematic research evolution
+- **Physics-Aware Evaluation**: Rigorous evaluation against analytical benchmarks and experimental feasibility
+- **Flexible Model Switching**: Easy switching between Gemini, Claude, GPT-4, and other models via A4F
+- **Comprehensive Analytics**: Track research evolution, breakthrough discoveries, and model performance
+- **Specialized Categories**: Focus on cavity QED, squeezed light, photon blockade, quantum metrology, and optomechanics
+- **Research Database**: SQLite-based storage for evolution tracking and lineage analysis
+- **Windows Compatible**: Unicode-safe logging and console output for all platforms
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -52,7 +52,7 @@ Inspired by AlphaEvolve, Coheron uses advanced language models to generate, eval
    python src/main.py evolve --generations 10
    ```
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### Basic Commands
 
@@ -125,7 +125,7 @@ python src/main.py analyze \
   --export analysis_export.json
 ```
 
-## 🎨 Custom Prompts and Configuration
+## Custom Prompts and Configuration
 
 ### Custom Research Prompts
 
@@ -333,7 +333,7 @@ Provide high-quality starting examples in `data/seed_research.json`:
 }
 ```
 
-## 🏗️ System Architecture
+## System Architecture
 
 ### Core Components
 
@@ -378,7 +378,7 @@ Coheron/
    - Generate visualization plots and comprehensive reports
    - Store results in database for future analysis
 
-## 🎯 Research Categories Deep Dive
+## Research Categories Deep Dive
 
 ### Cavity QED
 **Focus**: Single atom-photon interactions in optical cavities
@@ -446,7 +446,7 @@ Key Research Areas:
 - **Hybrid Systems**: Coupling to spins, atoms, and superconducting circuits
 - **Quantum Transduction**: Microwave-to-optical frequency conversion
 
-## 📊 Physics-Aware Evaluation System
+## Physics-Aware Evaluation System
 
 The evaluation system provides rigorous scoring across four key dimensions:
 
@@ -532,7 +532,7 @@ performance_benchmarks:
     quality_factor: "Q > 10⁶"
 ```
 
-## 🎨 Visualization and Analysis Tools
+## Visualization and Analysis Tools
 
 ### Evolution Progress Tracking
 ```bash
@@ -570,7 +570,7 @@ analysis = analyze_breakthrough_patterns(solutions)
 create_custom_visualization(analysis)
 ```
 
-## 🔧 Advanced Configuration Options
+## Advanced Configuration Options
 
 ### Custom Model Integration
 ```yaml
@@ -623,15 +623,15 @@ def custom_physics_check(solution_content):
     return True, "Physics checks passed"
 ```
 
-## 📈 Model Comparison Guide
+## Model Comparison Guide
 
 ### Current Model Performance on Quantum Physics
 
 | Model | Physics Accuracy | Mathematical Rigor | Novel Insights | Cost Efficiency | Best Use Cases |
 |-------|------------------|-------------------|----------------|-----------------|----------------|
-| **Gemini 2.5 Flash** | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Rapid prototyping, exploration |
-| **Claude 3.5 Sonnet** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | Complex analysis, detailed derivations |
-| **GPT-4 Turbo** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | Structured outputs, systematic approaches |
+| **Gemini 2.5 Flash** | High | Good | High | Excellent | Rapid prototyping, exploration |
+| **Claude 3.5 Sonnet** | Excellent | Excellent | High | Good | Complex analysis, detailed derivations |
+| **GPT-4 Turbo** | High | High | Good | Fair | Structured outputs, systematic approaches |
 
 ### Model Selection Guidelines
 
@@ -651,7 +651,7 @@ def custom_physics_check(solution_content):
 - **Parameter Optimization**: Gemini 2.5 Flash
 - **Novel Concepts**: Claude 3.5 Sonnet
 
-## 🧪 Testing and Validation
+## Testing and Validation
 
 ### System Testing
 ```bash
@@ -696,7 +696,7 @@ def validate_research(content_file, category):
     return result
 ```
 
-## 🐛 Troubleshooting Guide
+## Troubleshooting Guide
 
 ### Common Issues and Solutions
 
@@ -771,7 +771,7 @@ python src/main.py evolve --log-level DEBUG --log-file
 - Batch API calls efficiently
 - Monitor usage with detailed logging
 
-## 🚀 Advanced Use Cases
+## Advanced Use Cases
 
 ### Multi-Domain Research
 ```bash
@@ -821,7 +821,7 @@ def run_custom_pipeline():
     return detailed_results
 ```
 
-## 📚 Complete Examples
+## Complete Examples
 
 ### Example 1: Cavity QED Breakthrough Discovery
 ```bash
@@ -956,7 +956,7 @@ if __name__ == '__main__':
     main()
 ```
 
-## 📄 License and Contributing
+## License and Contributing
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
@@ -973,14 +973,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Experimental proposals must cite realistic parameters
 - Novel concepts require thorough feasibility analysis
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **AlphaEvolve Architecture**: Inspiration for evolutionary discovery methods
 - **A4F Platform**: Flexible access to multiple language models
 - **Quantum Optics Community**: Benchmarks and validation from leading research groups
 - **Open Source Contributors**: Community contributions to physics validation and testing
 
-## 📞 Support and Community
+## Support and Community
 
 ### Getting Help
 1. **GitHub Issues**: Report bugs and request features
@@ -996,7 +996,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 🎯 Quick Start Commands
+## Quick Start Commands
 
 **Immediate Usage** (copy and paste):
 ```bash
@@ -1013,6 +1013,6 @@ python view_results.py results/
 python src/main.py evolve --demo --generations 5 --population 3
 ```
 
-**Ready to discover breakthrough quantum optics research?** 🚀
+**Ready to discover breakthrough quantum optics research?**
 
 Start your evolution today and let Coheron guide you to novel physics discoveries through the power of evolutionary AI!
