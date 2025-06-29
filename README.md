@@ -1,4 +1,4 @@
-# Coheron AMO Physics Problem Solver
+# Coheron
 
 **An evolutionary AI system for solving challenging problems in Atomic, Molecular, and Optical Physics**
 
