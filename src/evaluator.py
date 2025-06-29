@@ -33,6 +33,11 @@ class QuantumOpticsEvaluator:
         # Load evaluation weights
         self.weights = self.criteria.get('scoring_criteria', {})
         
+        # Initialize AMO components for problem-based evaluation
+        self.amo_parameter_extractor = None
+        self.amo_physics_calculator = None
+        self._initialize_amo_components()
+        
         # Physical constants
         self.constants = {
             'h_bar': 1.054571817e-34,  # J⋅s
@@ -42,6 +47,21 @@ class QuantumOpticsEvaluator:
             'epsilon_0': 8.8541878128e-12,  # F/m
             'mu_0': 1.25663706212e-6   # H/m
         }
+    
+    def _initialize_amo_components(self):
+        """Initialize AMO parameter extraction and calculation components"""
+        try:
+            from .amo_parameter_extractor import AMOParameterExtractor
+            from .amo_physics_calculator import AMOPhysicsCalculator
+            
+            self.amo_parameter_extractor = AMOParameterExtractor()
+            self.amo_physics_calculator = AMOPhysicsCalculator()
+            self.logger.info("AMO evaluation components initialized")
+            
+        except ImportError as e:
+            self.logger.warning(f"AMO components not available: {e}")
+            self.amo_parameter_extractor = None
+            self.amo_physics_calculator = None
         
     def _load_benchmarks(self, filepath: str) -> Dict[str, Any]:
         """Load analytical benchmarks and experimental records"""
@@ -60,6 +80,392 @@ class QuantumOpticsEvaluator:
         except FileNotFoundError:
             self.logger.warning(f"Criteria file not found: {filepath}")
             return self._get_default_criteria()
+    
+    def evaluate_for_amo_problem(self, solution: Dict[str, Any], amo_problem) -> EvaluationResult:
+        """
+        Evaluate solution specifically for an AMO problem with parameter targets.
+        This method focuses on parameter achievement rather than generic research quality.
+        """
+        self.logger.info(f"Evaluating solution for AMO problem: {amo_problem.title}")
+        
+        # Extract parameters from solution
+        extracted_parameters = {}
+        extraction_confidence = 0.0
+        
+        if self.amo_parameter_extractor:
+            try:
+                extraction_result = self.amo_parameter_extractor.extract_parameters(
+                    solution.get('content', ''), solution
+                )
+                extracted_parameters = self.amo_parameter_extractor.get_parameter_summary(extraction_result)
+                extraction_confidence = extraction_result.confidence_score
+                
+                # Calculate derived parameters
+                if self.amo_physics_calculator:
+                    physics_results = self.amo_physics_calculator.calculate_all_relevant_parameters(
+                        solution.get('content', ''), extracted_parameters
+                    )
+                    
+                    # Add calculated parameters
+                    for param_name, calc_result in physics_results.items():
+                        if param_name not in extracted_parameters:
+                            extracted_parameters[param_name] = calc_result.value
+                
+            except Exception as e:
+                self.logger.warning(f"Parameter extraction failed: {e}")
+        
+        # Score against problem targets
+        problem_results = amo_problem.calculate_total_score(extracted_parameters)
+        target_score = problem_results['total_score']
+        
+        # Evaluate individual components with AMO focus
+        feasibility_result = self._evaluate_amo_feasibility(solution, amo_problem, extracted_parameters)
+        mathematics_result = self._evaluate_amo_mathematics(solution, amo_problem, extracted_parameters)
+        novelty_result = self._evaluate_amo_novelty(solution, amo_problem, extracted_parameters)
+        performance_result = self._evaluate_amo_performance(solution, amo_problem, extracted_parameters, problem_results)
+        
+        # Weight scores with emphasis on parameter achievement
+        amo_weights = {
+            'target_achievement': 0.4,  # Primary focus on meeting targets
+            'feasibility': 0.2,
+            'mathematics': 0.2,
+            'novelty': 0.1,
+            'performance': 0.1
+        }
+        
+        # Calculate weighted total score
+        total_score = (
+            target_score * amo_weights['target_achievement'] +
+            feasibility_result['score'] * amo_weights['feasibility'] +
+            mathematics_result['score'] * amo_weights['mathematics'] +
+            novelty_result['score'] * amo_weights['novelty'] +
+            performance_result['score'] * amo_weights['performance']
+        )
+        
+        # Compile detailed results
+        details = {
+            'amo_problem_results': problem_results,
+            'extracted_parameters': extracted_parameters,
+            'extraction_confidence': extraction_confidence,
+            'target_achievement_score': target_score,
+            'feasibility_details': feasibility_result,
+            'mathematics_details': mathematics_result,
+            'novelty_details': novelty_result,
+            'performance_details': performance_result,
+            'amo_weights_used': amo_weights
+        }
+        
+        # Collect warnings and benchmarks
+        warnings = []
+        benchmarks_matched = []
+        
+        for result in [feasibility_result, mathematics_result, novelty_result, performance_result]:
+            warnings.extend(result.get('warnings', []))
+            benchmarks_matched.extend(result.get('benchmarks_matched', []))
+        
+        # Add parameter-specific warnings
+        missing_targets = amo_problem.get_missing_targets(extracted_parameters)
+        if missing_targets:
+            warnings.append(f"Missing target parameters: {', '.join(missing_targets)}")
+        
+        return EvaluationResult(
+            feasibility=feasibility_result['score'],
+            mathematics=mathematics_result['score'],
+            novelty=novelty_result['score'],
+            performance=performance_result['score'],
+            total_score=total_score,
+            details=details,
+            benchmarks_matched=list(set(benchmarks_matched)),
+            warnings=list(set(warnings))
+        )
+    
+    def _evaluate_amo_feasibility(self, solution: Dict[str, Any], amo_problem, 
+                                 extracted_parameters: Dict[str, float]) -> Dict[str, Any]:
+        """Evaluate feasibility specifically for AMO problem context"""
+        content = solution.get('content', '').lower()
+        
+        feasibility_score = 1.0
+        warnings = []
+        checks_passed = []
+        
+        # Check physics constraints from problem
+        for constraint in amo_problem.constraints:
+            is_valid, message = constraint.validate(extracted_parameters)
+            if not is_valid:
+                feasibility_score *= 0.7  # Penalty for constraint violation
+                warnings.append(f"Constraint violation: {message}")
+            else:
+                checks_passed.append(constraint.name)
+        
+        # Standard physics checks
+        energy_score, energy_warnings = self._check_energy_conservation(content, extracted_parameters)
+        feasibility_score *= energy_score
+        warnings.extend(energy_warnings)
+        
+        limits_score, limits_warnings = self._check_fundamental_limits(content, extracted_parameters)
+        feasibility_score *= limits_score
+        warnings.extend(limits_warnings)
+        
+        # AMO-specific parameter range checks
+        range_score, range_warnings = self._check_amo_parameter_ranges(extracted_parameters)
+        feasibility_score *= range_score
+        warnings.extend(range_warnings)
+        
+        return {
+            'score': min(feasibility_score, 1.0),
+            'warnings': warnings,
+            'checks_passed': checks_passed,
+            'constraint_compliance': len(checks_passed) / max(len(amo_problem.constraints), 1)
+        }
+    
+    def _evaluate_amo_mathematics(self, solution: Dict[str, Any], amo_problem,
+                                 extracted_parameters: Dict[str, float]) -> Dict[str, Any]:
+        """Evaluate mathematical correctness with focus on parameter calculations"""
+        content = solution.get('content', '').lower()
+        
+        math_score = 0.0
+        benchmarks_matched = []
+        warnings = []
+        
+        # Check parameter consistency using physics calculator
+        if self.amo_physics_calculator and extracted_parameters:
+            try:
+                calculated_params = self.amo_physics_calculator.calculate_all_relevant_parameters(
+                    content, extracted_parameters
+                )
+                
+                # Check consistency between extracted and calculated parameters
+                consistency_score = self._check_parameter_consistency(
+                    extracted_parameters, calculated_params
+                )
+                math_score += consistency_score * 0.4
+                
+                if consistency_score > 0.8:
+                    benchmarks_matched.append('parameter_consistency')
+                
+            except Exception as e:
+                warnings.append(f"Parameter calculation failed: {e}")
+        
+        # Standard mathematical checks
+        category = amo_problem.category
+        if category == 'cavity_qed':
+            score, matched, warns = self._verify_cavity_qed_math(content, extracted_parameters)
+            math_score += score * 0.3
+            benchmarks_matched.extend(matched)
+            warnings.extend(warns)
+        elif category == 'squeezed_light':
+            score, matched, warns = self._verify_squeezing_math(content, extracted_parameters)
+            math_score += score * 0.3
+            benchmarks_matched.extend(matched)
+            warnings.extend(warns)
+        elif category == 'optomechanics':
+            score, matched, warns = self._verify_optomechanics_math(content, extracted_parameters)
+            math_score += score * 0.3
+            benchmarks_matched.extend(matched)
+            warnings.extend(warns)
+        
+        # General physics consistency
+        consistency_score, consistency_warnings = self._check_general_physics_consistency(content, extracted_parameters)
+        math_score += consistency_score * 0.3
+        warnings.extend(consistency_warnings)
+        
+        return {
+            'score': min(math_score, 1.0),
+            'category': category,
+            'benchmarks_matched': benchmarks_matched,
+            'warnings': warnings,
+            'parameter_consistency': consistency_score if 'consistency_score' in locals() else 0.0
+        }
+    
+    def _evaluate_amo_novelty(self, solution: Dict[str, Any], amo_problem,
+                             extracted_parameters: Dict[str, float]) -> Dict[str, Any]:
+        """Evaluate novelty in context of AMO problem solving"""
+        content = solution.get('content', '').lower()
+        
+        novelty_score = 0.0
+        novelty_indicators = []
+        
+        # Parameter regime novelty
+        param_novelty = self._assess_amo_parameter_novelty(extracted_parameters, amo_problem)
+        novelty_score += param_novelty * 0.4
+        if param_novelty > 0.7:
+            novelty_indicators.append('novel_parameter_regime')
+        
+        # Approach novelty for the specific problem
+        approach_novelty = self._assess_amo_approach_novelty(content, amo_problem)
+        novelty_score += approach_novelty * 0.4
+        if approach_novelty > 0.7:
+            novelty_indicators.append('novel_approach')
+        
+        # Standard novelty assessment
+        standard_novelty = self._assess_application_novelty(content, extracted_parameters)
+        novelty_score += standard_novelty * 0.2
+        
+        return {
+            'score': min(novelty_score, 1.0),
+            'indicators': novelty_indicators,
+            'parameter_novelty': param_novelty,
+            'approach_novelty': approach_novelty,
+            'application_novelty': standard_novelty
+        }
+    
+    def _evaluate_amo_performance(self, solution: Dict[str, Any], amo_problem,
+                                 extracted_parameters: Dict[str, float],
+                                 problem_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Evaluate performance specifically for AMO problem targets"""
+        
+        # Primary score comes from target parameter achievement
+        target_score = problem_results['total_score']
+        
+        # Bonus for exceeding targets
+        parameter_scores = problem_results.get('parameter_scores', {})
+        excellence_bonus = 0.0
+        
+        for param_name, param_result in parameter_scores.items():
+            if param_result.get('score', 0) > 0.95:  # Exceptional achievement
+                excellence_bonus += 0.1
+        
+        excellence_bonus = min(excellence_bonus, 0.3)  # Cap bonus
+        
+        # Check for breakthrough achievement
+        breakthrough_achieved = amo_problem.is_solved(extracted_parameters)
+        breakthrough_bonus = 0.2 if breakthrough_achieved else 0.0
+        
+        performance_score = min(target_score + excellence_bonus + breakthrough_bonus, 1.0)
+        
+        return {
+            'score': performance_score,
+            'target_achievement': target_score,
+            'excellence_bonus': excellence_bonus,
+            'breakthrough_bonus': breakthrough_bonus,
+            'breakthrough_achieved': breakthrough_achieved,
+            'parameter_details': parameter_scores
+        }
+    
+    def _check_parameter_consistency(self, extracted_params: Dict[str, float],
+                                   calculated_results: Dict[str, Any]) -> float:
+        """Check consistency between extracted and calculated parameters"""
+        if not extracted_params or not calculated_results:
+            return 0.5  # Neutral score if no comparison possible
+        
+        consistency_score = 1.0
+        comparisons = 0
+        
+        for param_name, calc_result in calculated_results.items():
+            if param_name in extracted_params:
+                extracted_val = extracted_params[param_name]
+                calculated_val = calc_result.value
+                
+                if extracted_val > 0 and calculated_val > 0:
+                    # Check relative agreement
+                    relative_error = abs(extracted_val - calculated_val) / max(extracted_val, calculated_val)
+                    if relative_error < 0.1:  # Within 10%
+                        consistency_score *= 1.0
+                    elif relative_error < 0.5:  # Within 50%
+                        consistency_score *= 0.8
+                    else:
+                        consistency_score *= 0.5
+                    
+                    comparisons += 1
+        
+        return consistency_score if comparisons > 0 else 0.7  # Default score if no comparisons
+    
+    def _check_amo_parameter_ranges(self, parameters: Dict[str, float]) -> Tuple[float, List[str]]:
+        """Check if AMO parameters are in reasonable physical ranges"""
+        score = 1.0
+        warnings = []
+        
+        # AMO-specific parameter ranges
+        amo_ranges = {
+            'coupling_strength': (1e3, 1e12),      # Hz
+            'cavity_decay_rate': (1e2, 1e8),       # Hz
+            'atomic_linewidth': (1e3, 1e9),        # Hz
+            'cooperativity': (0.01, 1e6),          # dimensionless
+            'quality_factor': (10, 1e12),          # dimensionless
+            'finesse': (10, 1e7),                  # dimensionless
+            'squeezing_level': (0, 25),            # dB
+            'fidelity': (0, 1),                    # fraction
+            'temperature': (0.001, 1000),          # K
+            'wavelength': (100e-9, 10e-6),         # m
+            'frequency': (1e10, 1e16),             # Hz
+        }
+        
+        for param_name, value in parameters.items():
+            if param_name.startswith('_'):
+                continue  # Skip metadata
+                
+            if param_name in amo_ranges:
+                min_val, max_val = amo_ranges[param_name]
+                
+                if not (min_val <= value <= max_val):
+                    score *= 0.8
+                    warnings.append(f"{param_name} = {value:.2e} outside reasonable range [{min_val:.2e}, {max_val:.2e}]")
+        
+        return score, warnings
+    
+    def _assess_amo_parameter_novelty(self, parameters: Dict[str, float], amo_problem) -> float:
+        """Assess novelty of parameter values in context of specific AMO problem"""
+        novelty = 0.0
+        
+        # Check if parameters exceed current records
+        for param_name, value in parameters.items():
+            if param_name in amo_problem.target_parameters:
+                target_param = amo_problem.target_parameters[param_name]
+                
+                # Check against current record if available
+                if target_param.current_record:
+                    try:
+                        # Simple parsing of current record
+                        record_value = float(re.findall(r'[\d.]+e?[+-]?\d*', target_param.current_record)[0])
+                        
+                        # Bonus for exceeding records
+                        if target_param.target_operator in ['>', '>='] and value > record_value:
+                            novelty += 0.3
+                        elif target_param.target_operator in ['<', '<='] and value < record_value:
+                            novelty += 0.3
+                            
+                    except (ValueError, IndexError):
+                        pass  # Couldn't parse record
+                
+                # Bonus for extreme parameter regimes
+                if param_name == 'coupling_strength' and value > 1e9:
+                    novelty += 0.2
+                elif param_name == 'cooperativity' and value > 1000:
+                    novelty += 0.2
+                elif param_name == 'quality_factor' and value > 1e8:
+                    novelty += 0.2
+        
+        return min(novelty, 1.0)
+    
+    def _assess_amo_approach_novelty(self, content: str, amo_problem) -> float:
+        """Assess novelty of approach for the specific AMO problem"""
+        novelty = 0.0
+        
+        # Novel system architectures
+        novel_architectures = [
+            'hybrid', 'multimode', 'network', 'coupled array', 'distributed',
+            'metamaterial', 'photonic crystal', 'plasmonic', 'superconducting'
+        ]
+        
+        architecture_count = sum(1 for arch in novel_architectures if arch in content)
+        novelty += min(architecture_count * 0.15, 0.5)
+        
+        # Novel physics mechanisms
+        novel_mechanisms = [
+            'many-body', 'collective', 'nonlinear', 'squeezed', 'entangled',
+            'topological', 'synthetic', 'engineered', 'tailored'
+        ]
+        
+        mechanism_count = sum(1 for mech in novel_mechanisms if mech in content)
+        novelty += min(mechanism_count * 0.1, 0.3)
+        
+        # Problem-specific novelty
+        if amo_problem.category == 'cavity_qed' and 'room temperature' in content:
+            novelty += 0.3  # Room temp cavity QED is highly novel
+        elif amo_problem.category == 'quantum_memory' and 'millisecond' in content:
+            novelty += 0.2  # Long storage times are challenging
+        
+        return min(novelty, 1.0)
             
     def evaluate_research(self, solution: Dict[str, Any]) -> EvaluationResult:
         """Complete evaluation pipeline with detailed scoring"""

@@ -1,0 +1,100 @@
+id: squeezed_light_20db
+title: 20 dB Squeezed Light Generation
+category: squeezed_light  
+description: Generate optical squeezed states with >20 dB noise reduction below shot noise limit
+physics_challenge: Achieve unprecedented squeezing levels while maintaining high detection efficiency and broad bandwidth
+
+target_parameters:
+  squeezing_level:
+    symbol: S
+    target: "> 20"
+    units: dB
+    description: Noise reduction below shot noise limit
+    weight: 0.5
+    type: optimization
+    current_record: "15 dB achieved in lab conditions"
+  
+  detection_efficiency:
+    symbol: η_det
+    target: "> 0.99"
+    units: ""
+    description: Overall detection efficiency including losses
+    weight: 0.3
+    type: optimization
+    current_record: "0.95 for 15 dB squeezing"
+  
+  squeezing_bandwidth:
+    symbol: Δf
+    target: "> 100e6"
+    units: Hz
+    description: Bandwidth over which squeezing is maintained
+    weight: 0.2
+    type: optimization
+    current_record: "~10 MHz for >15 dB"
+
+constraints:
+  - name: shot_noise_reference
+    description: Squeezing must be measured relative to quantum shot noise limit
+    type: fundamental
+    penalty_weight: 1.0
+  
+  - name: classical_noise_elimination
+    description: All classical noise sources must be below quantum limit
+    type: technical
+    penalty_weight: 0.9
+  
+  - name: pump_depletion_limit
+    description: Parametric process must not deplete pump significantly
+    type: physical
+    penalty_weight: 0.7
+
+breakthrough_threshold: 0.95
+significant_progress_threshold: 0.8
+
+domain: quantum_optics
+subdomain: nonlinear_optics
+difficulty_level: expert
+experimental_status: open
+
+background_context: |
+  Squeezed light represents one of the most important non-classical states of light,
+  enabling quantum-enhanced sensing beyond the standard quantum limit. 20 dB squeezing
+  would enable revolutionary improvements in gravitational wave detection, quantum sensing,
+  and quantum information processing.
+  
+  Current limitations:
+  - Technical noise sources limiting achieved squeezing
+  - Optical losses degrading squeezing during propagation  
+  - Bandwidth limitations in current squeezing sources
+  - Detection inefficiencies
+
+experimental_constraints:
+  - "Squeezing must be verified by homodyne detection"
+  - "System must operate at room temperature"
+  - "Continuous wave operation preferred"
+  - "Compatible with existing gravitational wave detectors"
+
+theoretical_framework: |
+  Parametric amplification below threshold:
+  Squeezing parameter: r = asinh(√(P_pump/P_threshold - 1))
+  Noise reduction: ΔX₁² = (1/4)exp(-2r)
+  Squeezing in dB: S = -10 log₁₀(ΔX₁²/(1/4))
+  
+  Fundamental limit: Perfect squeezing limited by spontaneous parametric scattering
+
+references:
+  - "Schnabel, R. Squeezed states of light and their applications in laser interferometry. Phys. Rep. 684, 1 (2017)"
+  - "Aasi, J. et al. Enhanced sensitivity of the LIGO gravitational wave detector. Nature Photon. 7, 613 (2013)"
+  - "Vahlbruch, H. et al. Detection of 15 dB squeezed states of light. Phys. Rev. Lett. 100, 033602 (2008)"
+
+related_problems:
+  - gravitational_wave_enhancement
+  - quantum_sensing_limit
+
+keywords:
+  - squeezed light
+  - shot noise
+  - parametric amplification
+  - quantum noise
+  - homodyne detection
+  - nonlinear optics

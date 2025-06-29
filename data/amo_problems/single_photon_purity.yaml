@@ -1,0 +1,110 @@
+id: single_photon_purity
+title: Deterministic Single Photon Source with 99.9% Purity
+category: photon_blockade
+description: Generate single photons on-demand with >99.9% purity and >90% collection efficiency
+physics_challenge: Achieve near-perfect single photon statistics while maintaining high brightness and collection efficiency
+
+target_parameters:
+  photon_purity:
+    symbol: P_1
+    target: "> 0.999"
+    units: ""
+    description: Single photon purity (1 - multi-photon probability)
+    weight: 0.4
+    type: optimization
+    current_record: "0.99 purity achieved"
+  
+  collection_efficiency:
+    symbol: η_coll
+    target: "> 0.9"
+    units: ""
+    description: Probability of collecting emitted single photon
+    weight: 0.3
+    type: optimization
+    current_record: "0.85 for high purity sources"
+  
+  repetition_rate:
+    symbol: R
+    target: "> 1e9"
+    units: Hz
+    description: Rate of single photon generation
+    weight: 0.2
+    type: optimization
+    current_record: "~100 MHz for purest sources"
+  
+  indistinguishability:
+    symbol: V
+    target: "> 0.95"
+    units: ""
+    description: Hong-Ou-Mandel visibility between consecutive photons
+    weight: 0.1
+    type: optimization
+    current_record: "0.92 for best sources"
+
+constraints:
+  - name: antibunching_criterion
+    description: g²(0) < 0.01 required for true single photon emission
+    type: fundamental
+    penalty_weight: 1.0
+  
+  - name: deterministic_triggering
+    description: Photon emission must be deterministically triggered
+    type: technical
+    penalty_weight: 0.9
+  
+  - name: spectral_purity
+    description: Emission linewidth must be transform-limited
+    type: physical
+    penalty_weight: 0.7
+
+breakthrough_threshold: 0.95
+significant_progress_threshold: 0.8
+
+domain: quantum_optics
+subdomain: quantum_light_sources
+difficulty_level: hard
+experimental_status: open
+
+background_context: |
+  Deterministic single photon sources are essential for linear optical quantum computing,
+  quantum communication, and quantum sensing. Current sources face trade-offs between
+  purity, brightness, and indistinguishability. Achieving all parameters simultaneously
+  would enable practical quantum photonic technologies.
+  
+  Key challenges:
+  - Spectral diffusion reducing indistinguishability
+  - Collection efficiency limited by solid-state environments
+  - Trade-off between brightness and purity
+  - Environmental fluctuations affecting stability
+
+experimental_constraints:
+  - "Must operate at telecommunication wavelengths or be convertible"
+  - "Room temperature operation preferred"
+  - "Electrical triggering capability required"
+  - "Compatible with standard optical components"
+
+theoretical_framework: |
+  Single photon statistics:
+  g²(τ) = ⟨n(t)n(t+τ)⟩/⟨n(t)⟩²
+  
+  Perfect single photon: g²(0) = 0
+  Multi-photon suppression: P_multi = g²(0) × P_emission
+  
+  Hong-Ou-Mandel visibility: V = (I_max - I_min)/(I_max + I_min)
+
+references:
+  - "Senellart, P., Solomon, G. & White, A. High-performance semiconductor quantum-dot single-photon sources. Nature Nanotech. 12, 1026 (2017)"
+  - "Somaschi, N. et al. Near-optimal single-photon sources in the solid state. Nature Photon. 10, 340 (2016)"
+  - "Wang, H. et al. High-efficiency multiphoton boson sampling. Nature Photon. 11, 361 (2017)"
+
+related_problems:
+  - quantum_dot_coherence
+  - photonic_quantum_computing
+
+keywords:
+  - single photons
+  - photon blockade
+  - quantum dots
+  - antibunching
+  - collection efficiency
+  - indistinguishability

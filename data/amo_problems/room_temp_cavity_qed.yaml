@@ -1,0 +1,99 @@
+id: room_temp_cavity_qed
+title: Room Temperature Strong Coupling in Cavity QED
+category: cavity_qed
+description: Achieve strong coupling regime between single atoms and optical cavity modes at room temperature without cryogenic cooling
+physics_challenge: Design a cavity QED system that maintains g > √(κγ) at 300K while preserving quantum coherence
+
+target_parameters:
+  coupling_strength:
+    symbol: g
+    target: "> 1000e6"
+    units: Hz
+    description: Atom-cavity coupling strength for strong coupling
+    weight: 0.4
+    type: optimization
+    current_record: "~50e6 Hz at room temperature"
+  
+  quality_factor:
+    symbol: Q
+    target: "> 1e7"
+    units: ""
+    description: Cavity quality factor to minimize losses
+    weight: 0.3
+    type: optimization
+    current_record: "~1e6 at room temperature"
+  
+  cooperativity:
+    symbol: C
+    target: "> 1000"
+    units: ""
+    description: Cooperativity parameter C = 4g²/(κγ)
+    weight: 0.3
+    type: optimization
+    current_record: "~10 at room temperature"
+
+constraints:
+  - name: room_temperature
+    description: System must operate at T = 300K ± 5K
+    type: experimental
+    penalty_weight: 1.0
+  
+  - name: energy_conservation
+    description: All energy processes must conserve energy
+    type: fundamental
+    penalty_weight: 1.0
+  
+  - name: decoherence_limit
+    description: Thermal decoherence rate must not exceed coupling rate
+    type: physical
+    penalty_weight: 0.8
+
+breakthrough_threshold: 0.95
+significant_progress_threshold: 0.8
+
+domain: quantum_optics
+subdomain: cavity_qed
+difficulty_level: expert
+experimental_status: open
+
+background_context: |
+  Current cavity QED experiments demonstrating strong coupling require cryogenic cooling 
+  to suppress thermal noise and maintain coherence. Room temperature operation would 
+  revolutionize quantum technologies by eliminating complex cooling systems.
+  
+  Key challenges include:
+  - Thermal motion destroying atom-cavity alignment
+  - Thermal photons competing with quantum effects  
+  - Increased decoherence rates at higher temperatures
+  - Material limitations in high-Q cavities at 300K
+
+experimental_constraints:
+  - "No cryogenic cooling systems allowed"
+  - "Single atom control and positioning required"
+  - "Cavity must maintain alignment despite thermal fluctuations"
+  - "Detection must distinguish quantum from thermal effects"
+
+theoretical_framework: |
+  Strong coupling occurs when g > (κ,γ)/2 where:
+  - g: vacuum Rabi coupling strength
+  - κ: cavity decay rate  
+  - γ: atomic spontaneous decay rate
+  
+  At room temperature, thermal effects introduce additional decoherence.
+
+references:
+  - "Kimble, H.J. Strong interactions of single atoms and photons in cavity QED. Physica Scripta T76, 127 (1998)"
+  - "Miller, R. et al. Trapped atoms in cavity QED. J. Phys. B 38, S551 (2005)"
+  - "Reiserer, A. & Rempe, G. Cavity-based quantum networks with single atoms. Rev. Mod. Phys. 87, 1379 (2015)"
+
+related_problems:
+  - quantum_memory_fidelity
+  - single_photon_generation
+
+keywords:
+  - cavity QED
+  - strong coupling
+  - room temperature
+  - single atom
+  - thermal decoherence
+  - quantum optics

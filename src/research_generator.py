@@ -502,6 +502,339 @@ class QuantumResearchGenerator:
             generation=prompt.generation
         )
         
+    def generate_problem_targeted_prompts(self, problem_data: Dict[str, Any], num_prompts: int = 5) -> List[ResearchPrompt]:
+        """Generate prompts specifically targeted at solving a given AMO problem"""
+        prompts = []
+        
+        problem_description = problem_data.get('description', '')
+        physics_challenge = problem_data.get('physics_challenge', '')
+        category = problem_data.get('category', 'cavity_qed')
+        target_parameters = problem_data.get('target_parameters', {})
+        
+        # Base problem-solving prompt
+        base_content = self._create_base_problem_prompt(problem_description, physics_challenge, target_parameters)
+        
+        base_prompt = ResearchPrompt(
+            content=base_content,
+            category=category,
+            system_prompt=self._get_problem_solving_system_prompt(category, target_parameters),
+            generation=0,
+            mutation_type='problem_targeted'
+        )
+        prompts.append(base_prompt)
+        
+        # Generate focused variations
+        for i in range(num_prompts - 1):
+            variation_type = random.choice([
+                'parameter_focused', 'constraint_focused', 'application_focused', 
+                'experimental_focused', 'theoretical_focused'
+            ])
+            
+            varied_prompt = self._create_problem_variation(
+                base_content, category, target_parameters, variation_type, i
+            )
+            prompts.append(varied_prompt)
+        
+        return prompts
+    
+    def generate_parameter_optimization_prompts(self, 
+                                              current_solution: Dict[str, Any],
+                                              target_parameters: Dict[str, Any],
+                                              missing_targets: List[str]) -> List[ResearchPrompt]:
+        """Generate prompts focused on optimizing specific parameters"""
+        prompts = []
+        
+        # Focus on most important missing targets
+        priority_targets = sorted(missing_targets, 
+                                key=lambda x: target_parameters.get(x, {}).get('weight', 1.0), 
+                                reverse=True)
+        
+        for target in priority_targets[:3]:  # Focus on top 3 missing targets
+            target_info = target_parameters.get(target, {})
+            target_value = target_info.get('target_value', 'optimize')
+            description = target_info.get('description', target)
+            
+            content = self._create_parameter_optimization_prompt(
+                current_solution, target, target_value, description
+            )
+            
+            prompt = ResearchPrompt(
+                content=content,
+                category=current_solution.get('category', 'cavity_qed'),
+                system_prompt=f"You are an expert in quantum optics parameter optimization. "
+                             f"Focus specifically on achieving {target} = {target_value}.",
+                generation=current_solution.get('generation', 0) + 1,
+                mutation_type=f'parameter_optimization_{target}',
+                parent_id=current_solution.get('id')
+            )
+            prompts.append(prompt)
+        
+        return prompts
+    
+    def generate_breakthrough_seeking_prompts(self, 
+                                            problem_data: Dict[str, Any],
+                                            best_current_score: float) -> List[ResearchPrompt]:
+        """Generate prompts designed to achieve breakthrough solutions"""
+        prompts = []
+        category = problem_data.get('category', 'cavity_qed')
+        
+        # Breakthrough strategies
+        strategies = [
+            'unconventional_approach',
+            'extreme_parameter_regime', 
+            'hybrid_system_design',
+            'novel_material_integration',
+            'fundamental_limit_pushing'
+        ]
+        
+        for strategy in strategies:
+            content = self._create_breakthrough_prompt(problem_data, strategy, best_current_score)
+            
+            prompt = ResearchPrompt(
+                content=content,
+                category=category,
+                system_prompt=f"You are a breakthrough quantum optics researcher. "
+                             f"Think outside conventional approaches to achieve unprecedented results.",
+                generation=0,
+                mutation_type=f'breakthrough_{strategy}'
+            )
+            prompts.append(prompt)
+        
+        return prompts
+    
+    def _create_base_problem_prompt(self, description: str, physics_challenge: str, 
+                                  target_parameters: Dict[str, Any]) -> str:
+        """Create base prompt for problem solving"""
+        
+        # List target parameters in a readable format
+        targets_list = []
+        for param_name, param_info in target_parameters.items():
+            target_val = param_info.get('target_value', 'optimize')
+            units = param_info.get('units', '')
+            targets_list.append(f"{param_name} {target_val} {units}".strip())
+        
+        targets_text = ", ".join(targets_list) if targets_list else "quantum performance metrics"
+        
+        content = f"""Design a quantum optical system to solve the following challenge:
+
+Problem: {description}
+
+Physics Challenge: {physics_challenge}
+
+Specific Target Parameters to Achieve:
+{targets_text}
+
+Requirements:
+1. Provide a complete system design with all key components
+2. Specify exact parameter values and operating conditions  
+3. Include detailed physics analysis with mathematical expressions
+4. Address experimental feasibility and implementation challenges
+5. Optimize specifically for the target parameters listed above
+
+Focus on achieving the numerical targets through innovative physics approaches."""
+        
+        return content
+    
+    def _create_problem_variation(self, base_content: str, category: str, 
+                                target_parameters: Dict[str, Any], variation_type: str, 
+                                variant_num: int) -> ResearchPrompt:
+        """Create variations of the base problem prompt"""
+        
+        if variation_type == 'parameter_focused':
+            # Focus on specific parameter
+            param_names = list(target_parameters.keys())
+            if param_names:
+                focus_param = param_names[variant_num % len(param_names)]
+                param_info = target_parameters[focus_param]
+                
+                addition = f"\n\nSPECIAL FOCUS: Pay particular attention to optimizing {focus_param}. "
+                addition += f"The target is {param_info.get('target_value', 'high performance')} "
+                addition += f"{param_info.get('units', '')}. "
+                addition += f"This parameter is critical because: {param_info.get('description', 'it determines system performance')}."
+                
+                content = base_content + addition
+                mutation_type = f'parameter_focused_{focus_param}'
+            else:
+                content = base_content
+                mutation_type = 'parameter_focused_general'
+        
+        elif variation_type == 'constraint_focused':
+            # Focus on experimental constraints
+            addition = f"\n\nCONSTRAINT EMPHASIS: Design must be experimentally realizable with current technology. "
+            addition += f"Consider practical limitations such as fabrication tolerances, environmental noise, "
+            addition += f"temperature stability, and measurement precision. Prioritize robust, implementable solutions."
+            
+            content = base_content + addition
+            mutation_type = 'constraint_focused'
+        
+        elif variation_type == 'application_focused':
+            # Focus on practical applications
+            applications = ['quantum computing', 'quantum sensing', 'quantum communication', 
+                          'quantum metrology', 'quantum simulation']
+            app = applications[variant_num % len(applications)]
+            
+            addition = f"\n\nAPPLICATION FOCUS: Optimize the design specifically for {app} applications. "
+            addition += f"Consider how the system performance in the target parameters directly enables "
+            addition += f"breakthrough capabilities in {app}."
+            
+            content = base_content + addition
+            mutation_type = f'application_focused_{app}'
+        
+        elif variation_type == 'experimental_focused':
+            # Focus on experimental implementation
+            addition = f"\n\nEXPERIMENTAL FOCUS: Provide detailed experimental protocols and measurement schemes. "
+            addition += f"Specify exact fabrication methods, characterization techniques, and control systems. "
+            addition += f"Include error analysis and noise mitigation strategies."
+            
+            content = base_content + addition
+            mutation_type = 'experimental_focused'
+        
+        elif variation_type == 'theoretical_focused':
+            # Focus on theoretical analysis
+            addition = f"\n\nTHEORETICAL FOCUS: Provide rigorous theoretical analysis with complete mathematical derivations. "
+            addition += f"Include quantum mechanical treatments, perturbation analysis where appropriate, "
+            addition += f"and comparison with fundamental limits. Derive scaling laws and optimization conditions."
+            
+            content = base_content + addition
+            mutation_type = 'theoretical_focused'
+        
+        else:
+            content = base_content
+            mutation_type = variation_type
+        
+        return ResearchPrompt(
+            content=content,
+            category=category,
+            system_prompt=self._get_problem_solving_system_prompt(category, target_parameters),
+            generation=0,
+            mutation_type=mutation_type
+        )
+    
+    def _create_parameter_optimization_prompt(self, current_solution: Dict[str, Any],
+                                            target_param: str, target_value: str, 
+                                            description: str) -> str:
+        """Create prompt focused on optimizing a specific parameter"""
+        
+        current_content = current_solution.get('content', '')
+        current_params = current_solution.get('parameters', {})
+        
+        content = f"""Improve the following quantum optical system to achieve the target parameter:
+
+CURRENT SYSTEM:
+{current_content[:500]}{'...' if len(current_content) > 500 else ''}
+
+OPTIMIZATION TARGET:
+Parameter: {target_param}
+Target Value: {target_value}  
+Description: {description}
+
+CURRENT STATUS:
+"""
+        
+        if target_param in current_params:
+            current_val = current_params[target_param]
+            content += f"Current {target_param}: {current_val}\n"
+            content += f"Gap to target: Needs optimization\n"
+        else:
+            content += f"Current {target_param}: Not achieved or detected\n"
+        
+        content += f"""
+OPTIMIZATION STRATEGY:
+1. Analyze why the current system doesn't achieve the target {target_param}
+2. Identify the key physics mechanisms that control this parameter
+3. Modify the system design to enhance these mechanisms
+4. Provide specific parameter values and configuration changes
+5. Verify that the modifications will achieve {target_value}
+
+Focus entirely on reaching the target value through physics-based optimization."""
+        
+        return content
+    
+    def _create_breakthrough_prompt(self, problem_data: Dict[str, Any], 
+                                  strategy: str, current_best_score: float) -> str:
+        """Create prompt for breakthrough-seeking approaches"""
+        
+        description = problem_data.get('description', '')
+        challenge = problem_data.get('physics_challenge', '')
+        
+        base = f"""Breakthrough Challenge: {description}
+
+Physics Challenge: {challenge}
+
+Current best approach achieves score: {current_best_score:.3f}
+TARGET: Achieve breakthrough performance significantly beyond current state-of-art.
+
+"""
+        
+        if strategy == 'unconventional_approach':
+            base += """BREAKTHROUGH STRATEGY: Unconventional Approach
+- Challenge fundamental assumptions about how this problem is typically solved
+- Explore completely different physical mechanisms or system architectures  
+- Consider interdisciplinary approaches from other fields of physics
+- Think beyond incremental improvements to revolutionary solutions"""
+        
+        elif strategy == 'extreme_parameter_regime':
+            base += """BREAKTHROUGH STRATEGY: Extreme Parameter Regime
+- Explore extreme parameter regimes not typically considered
+- Consider ultra-strong coupling, ultra-high Q factors, exotic materials
+- Push to fundamental quantum limits
+- Investigate nonlinear and many-body effects in extreme regimes"""
+        
+        elif strategy == 'hybrid_system_design':
+            base += """BREAKTHROUGH STRATEGY: Hybrid System Design  
+- Combine multiple quantum systems (atomic, optical, mechanical, solid-state)
+- Leverage different physics domains to overcome individual limitations
+- Create synergistic effects between subsystems
+- Design novel interfaces between different quantum platforms"""
+        
+        elif strategy == 'novel_material_integration':
+            base += """BREAKTHROUGH STRATEGY: Novel Material Integration
+- Integrate cutting-edge materials (metamaterials, 2D materials, superconductors)
+- Exploit unique material properties for quantum advantage
+- Design custom material structures for optimal performance
+- Consider bio-inspired or artificially structured materials"""
+        
+        elif strategy == 'fundamental_limit_pushing':
+            base += """BREAKTHROUGH STRATEGY: Fundamental Limit Pushing
+- Approach fundamental quantum limits (shot noise, Heisenberg uncertainty)
+- Exploit quantum correlations and entanglement for enhancement
+- Use squeezed states, non-classical light, and quantum error correction
+- Design systems that saturate theoretical performance bounds"""
+        
+        base += f"\n\nProvide a complete system design that could achieve breakthrough performance."
+        
+        return base
+    
+    def _get_problem_solving_system_prompt(self, category: str, 
+                                         target_parameters: Dict[str, Any]) -> str:
+        """Get specialized system prompt for problem solving"""
+        
+        base_prompt = f"You are a world-class expert in {category.replace('_', ' ')} quantum optics. "
+        base_prompt += f"Your expertise includes both theoretical analysis and experimental implementation. "
+        
+        # Add parameter-specific expertise
+        param_expertise = {
+            'coupling_strength': 'strong light-matter coupling and cavity QED',
+            'cooperativity': 'strong coupling regimes and Purcell enhancement', 
+            'quality_factor': 'high-Q resonators and loss mechanisms',
+            'squeezing_level': 'quantum noise reduction and nonlinear optics',
+            'fidelity': 'quantum state manipulation and coherence preservation',
+            'finesse': 'optical cavity design and mirror optimization'
+        }
+        
+        specializations = []
+        for param in target_parameters.keys():
+            if param in param_expertise:
+                specializations.append(param_expertise[param])
+        
+        if specializations:
+            base_prompt += f"You specialize in {', '.join(set(specializations))}. "
+        
+        base_prompt += f"Provide quantitative analysis with specific parameter values. "
+        base_prompt += f"Focus on achieving the exact numerical targets specified in the problem."
+        
+        return base_prompt
+
     def get_category_statistics(self) -> Dict[str, int]:
         """Get statistics about available prompt categories"""
         stats = {}

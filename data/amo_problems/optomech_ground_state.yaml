@@ -1,0 +1,101 @@
+id: optomech_ground_state
+title: Ground State Cooling of Macroscopic Oscillator
+category: optomechanics
+description: Cool a macroscopic mechanical oscillator to its quantum ground state using radiation pressure
+physics_challenge: Achieve <n> < 0.1 phonons for a mechanical oscillator with mass > 1 picogram at room temperature
+
+target_parameters:
+  phonon_number:
+    symbol: n̄
+    target: "< 0.1"
+    units: ""
+    description: Average phonon occupation number
+    weight: 0.5
+    type: optimization
+    current_record: "0.07 phonons for sub-picogram oscillators"
+  
+  mechanical_mass:
+    symbol: m
+    target: "> 1e-15"
+    units: kg
+    description: Mass of the mechanical oscillator (>1 picogram)
+    weight: 0.3
+    type: constraint
+    current_record: "nano-gram oscillators cooled to ground state"
+  
+  cooperativity:
+    symbol: C_om
+    target: "> 100"
+    units: ""
+    description: Optomechanical cooperativity C = 4g²/(κγ_m)
+    weight: 0.2
+    type: optimization
+    current_record: "~1000 for nano-oscillators"
+
+constraints:
+  - name: room_temperature_operation
+    description: Initial thermal occupation at T = 300K
+    type: experimental
+    penalty_weight: 0.8
+  
+  - name: resolved_sideband
+    description: Sideband resolution ω_m >> κ required for ground state cooling
+    type: physical
+    penalty_weight: 1.0
+  
+  - name: quantum_backaction_limit
+    description: Cooling limited by quantum backaction, not classical noise
+    type: fundamental
+    penalty_weight: 0.9
+
+breakthrough_threshold: 0.9
+significant_progress_threshold: 0.75
+
+domain: quantum_optics
+subdomain: optomechanics
+difficulty_level: expert
+experimental_status: open
+
+background_context: |
+  Ground state cooling of macroscopic oscillators would demonstrate quantum effects
+  at the boundary between classical and quantum worlds. Current achievements are
+  limited to very small oscillators. Scaling to larger masses while maintaining
+  ground state cooling would enable tests of quantum mechanics at macroscopic scales.
+  
+  Key challenges:
+  - Thermal decoherence scales with mass
+  - Lower mechanical frequencies for larger oscillators
+  - Maintaining high mechanical quality factors
+  - Achieving sufficient optomechanical coupling
+
+experimental_constraints:
+  - "Mechanical oscillator must be suspended or levitated"
+  - "Optical cavity must maintain high finesse"
+  - "System must operate in resolved sideband regime"
+  - "Measurement must verify quantum ground state"
+
+theoretical_framework: |
+  Resolved sideband cooling:
+  Final phonon number: n̄_f = (Γ_heating)/(Γ_cooling + Γ_heating)
+  
+  Cooling rate: Γ_cooling = 4g²n̄_cav/κ
+  Heating rate: Γ_heating = γ_m n̄_th
+  
+  Ground state condition: n̄_f << 1 requires Γ_cooling >> Γ_heating
+
+references:
+  - "Aspelmeyer, M., Kippenberg, T.J. & Marquardt, F. Cavity optomechanics. Rev. Mod. Phys. 86, 1391 (2014)"
+  - "Teufel, J.D. et al. Sideband cooling of micromechanical motion to the quantum ground state. Nature 475, 359 (2011)"
+  - "Chan, J. et al. Laser cooling of a nanomechanical oscillator into its quantum ground state. Nature 478, 89 (2011)"
+
+related_problems:
+  - macroscopic_quantum_superposition
+  - quantum_sensing_mechanical
+
+keywords:
+  - optomechanics
+  - ground state cooling
+  - quantum mechanics
+  - macroscopic oscillator
+  - radiation pressure
+  - sideband cooling

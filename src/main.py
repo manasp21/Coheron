@@ -27,6 +27,8 @@ from evolution_controller import QuantumResearchEvolver
 from llm_interface import A4FInterface
 from evaluator import QuantumOpticsEvaluator
 from database import ResearchDatabase
+from amo_problem_solver import AMOProblemSolver
+from amo_problem_definition import AMOProblemLibrary
 from utils import (
     setup_logging, validate_config, create_evolution_plot, 
     create_category_analysis, export_results_report, format_duration,
@@ -63,6 +65,12 @@ def main():
             run_test(args, logger)
         elif args.command == 'benchmark':
             run_benchmark(args, logger)
+        elif args.command == 'solve':
+            run_amo_solve(args, logger)
+        elif args.command == 'problems':
+            run_amo_problems(args, logger)
+        elif args.command == 'create-problem':
+            run_create_problem(args, logger)
         else:
             logger.error(f"Unknown command: {args.command}")
             sys.exit(1)
@@ -155,6 +163,40 @@ Examples:
                                  help='Benchmark generation speed')
     benchmark_parser.add_argument('--models', nargs='+',
                                  help='Specific models to benchmark')
+    
+    # AMO Problem Solving commands
+    solve_parser = subparsers.add_parser('solve', help='Solve AMO physics problems')
+    solve_parser.add_argument('problem_id', help='Problem ID to solve')
+    solve_parser.add_argument('--generations', type=int, default=50,
+                             help='Maximum generations for evolution (default: 50)')
+    solve_parser.add_argument('--population', type=int, default=20,
+                             help='Population size (default: 20)')
+    solve_parser.add_argument('--output-dir', type=str, default='results/amo_solving',
+                             help='Output directory for results')
+    solve_parser.add_argument('--model', type=str,
+                             help='Override model for problem solving')
+    
+    # Problems management
+    problems_parser = subparsers.add_parser('problems', help='Manage AMO problems')
+    problems_parser.add_argument('--list', action='store_true',
+                                help='List available problems')
+    problems_parser.add_argument('--show', type=str,
+                                help='Show details of specific problem')
+    problems_parser.add_argument('--category', type=str,
+                                help='Filter by category')
+    problems_parser.add_argument('--difficulty', type=str,
+                                help='Filter by difficulty level')
+    problems_parser.add_argument('--status', type=str,
+                                help='Filter by status (open, solved, etc.)')
+    
+    # Create problem
+    create_problem_parser = subparsers.add_parser('create-problem', help='Create new AMO problem')
+    create_problem_parser.add_argument('--template', type=str,
+                                      help='Use problem template file')
+    create_problem_parser.add_argument('--interactive', action='store_true',
+                                      help='Interactive problem creation')
+    create_problem_parser.add_argument('--validate-only', action='store_true',
+                                      help='Only validate problem definition')
     
     # Global arguments
     parser.add_argument('--config', type=str, default='config/config.yaml',
@@ -623,6 +665,376 @@ def run_benchmark(args: argparse.Namespace, logger) -> None:
                 
             except Exception as e:
                 print(f"  ❌ Failed: {e}")
+
+def run_amo_solve(args: argparse.Namespace, logger) -> None:
+    """Run AMO problem solving"""
+    
+    logger.info(f"🔬 Starting AMO problem solving for: {args.problem_id}")
+    
+    try:
+        # Initialize problem solver
+        solver = AMOProblemSolver(
+            config_path=args.config,
+            results_dir=args.output_dir
+        )
+        
+        # Check if problem exists
+        available_problems = solver.list_available_problems()
+        problem_exists = any(p['id'] == args.problem_id for p in available_problems)
+        
+        if not problem_exists:
+            logger.error(f"❌ Problem '{args.problem_id}' not found")
+            print(f"\nAvailable problems:")
+            for problem in available_problems:
+                print(f"  • {problem['id']}: {problem['title']}")
+            return
+        
+        # Get problem details
+        problem = solver.problem_library.get_problem(args.problem_id)
+        print(f"\n🎯 Problem: {problem.title}")
+        print(f"📋 Category: {problem.category}")
+        print(f"🔬 Challenge: {problem.physics_challenge}")
+        print(f"🎲 Difficulty: {problem.difficulty_level}")
+        print(f"📊 Targets: {len(problem.target_parameters)} parameters")
+        
+        # Show target parameters
+        print(f"\n🎯 Target Parameters:")
+        for param_name, param in problem.target_parameters.items():
+            print(f"  • {param_name}: {param.target_value} {param.units}")
+            print(f"    {param.description}")
+        
+        print(f"\n🚀 Starting evolution with {args.generations} generations...")
+        print(f"👥 Population size: {args.population}")
+        
+        start_time = time.time()
+        
+        # Solve the problem
+        session = solver.solve_problem(
+            args.problem_id,
+            max_generations=args.generations,
+            population_size=args.population,
+            save_results=True
+        )
+        
+        elapsed_time = time.time() - start_time
+        
+        # Display results
+        print(f"\n✅ Problem solving completed in {format_duration(elapsed_time)}")
+        print(f"🧬 Total generations: {session.total_generations}")
+        print(f"📊 Total evaluations: {session.total_evaluations}")
+        print(f"🏆 Breakthrough achieved: {'Yes' if session.breakthrough_achieved else 'No'}")
+        
+        if session.best_solution:
+            print(f"🎯 Best score: {session.best_solution.problem_score:.3f}")
+            print(f"⚖️  Physics consistency: {session.best_solution.physics_consistency:.3f}")
+            print(f"🔍 Extraction confidence: {session.best_solution.extraction_confidence:.3f}")
+            
+            # Show parameter achievements
+            if session.best_solution.parameters:
+                print(f"\n📊 Parameter Achievements:")
+                problem_results = problem.calculate_total_score(session.best_solution.parameters)
+                
+                for param_name, param_def in problem.target_parameters.items():
+                    if param_name in session.best_solution.parameters:
+                        achieved_value = session.best_solution.parameters[param_name]
+                        score = param_def.evaluate_achievement(achieved_value)
+                        achieved = param_def.is_target_achieved(achieved_value)
+                        status = "✅" if achieved else "❌"
+                        
+                        print(f"  {status} {param_name}: {achieved_value:.2e} {param_def.units}")
+                        print(f"      Target: {param_def.target_value} (Score: {score:.3f})")
+                    else:
+                        print(f"  ❓ {param_name}: Not detected")
+            
+            # Show solution preview
+            print(f"\n📝 Best Solution Preview:")
+            content_preview = session.best_solution.content[:300] + "..." if len(session.best_solution.content) > 300 else session.best_solution.content
+            print(f"   {content_preview}")
+        
+        # Show evolution progress
+        if session.evolution_progress:
+            print(f"\n📈 Evolution Progress:")
+            for i, progress in enumerate(session.evolution_progress[-5:]):  # Last 5 generations
+                achieved_count = sum(progress.target_achievements.values())
+                total_targets = len(progress.target_achievements)
+                print(f"  Gen {progress.generation}: Score={progress.best_score:.3f}, Targets={achieved_count}/{total_targets}")
+        
+        print(f"\n💾 Results saved to: {Path(args.output_dir).absolute()}")
+        
+    except Exception as e:
+        logger.error(f"❌ Problem solving failed: {e}")
+        raise
+
+def run_amo_problems(args: argparse.Namespace, logger) -> None:
+    """Manage AMO problems"""
+    
+    logger.info("📚 Managing AMO problems")
+    
+    try:
+        # Initialize problem library
+        problem_library = AMOProblemLibrary()
+        
+        if args.list:
+            # List problems with optional filtering
+            problems = problem_library.list_problems()
+            
+            if args.category:
+                problems = [pid for pid in problems 
+                          if problem_library.get_problem(pid).category == args.category]
+            
+            if args.difficulty:
+                problems = [pid for pid in problems 
+                          if problem_library.get_problem(pid).difficulty_level == args.difficulty]
+            
+            if args.status:
+                problems = [pid for pid in problems 
+                          if problem_library.get_problem(pid).experimental_status == args.status]
+            
+            print(f"\n📚 Available AMO Problems ({len(problems)} total):")
+            print("=" * 70)
+            
+            for problem_id in problems:
+                problem = problem_library.get_problem(problem_id)
+                if problem:
+                    status_icon = {
+                        'open': '🔓',
+                        'partially_solved': '🔄', 
+                        'solved': '✅',
+                        'impossible': '❌'
+                    }.get(problem.experimental_status, '❓')
+                    
+                    difficulty_icon = {
+                        'easy': '🟢',
+                        'medium': '🟡',
+                        'hard': '🔴',
+                        'expert': '🟣',
+                        'unsolved': '⚫'
+                    }.get(problem.difficulty_level, '❓')
+                    
+                    print(f"\n{status_icon} {difficulty_icon} {problem.id}")
+                    print(f"   📋 {problem.title}")
+                    print(f"   🔬 Category: {problem.category}")
+                    print(f"   🎯 Targets: {len(problem.target_parameters)} parameters")
+                    print(f"   📝 {problem.description[:100]}{'...' if len(problem.description) > 100 else ''}")
+        
+        elif args.show:
+            # Show detailed problem information
+            problem = problem_library.get_problem(args.show)
+            
+            if not problem:
+                print(f"❌ Problem '{args.show}' not found")
+                return
+            
+            print(f"\n🔬 Problem Details: {problem.id}")
+            print("=" * 50)
+            print(f"📋 Title: {problem.title}")
+            print(f"🔬 Category: {problem.category}")
+            print(f"🎲 Difficulty: {problem.difficulty_level}")
+            print(f"📊 Status: {problem.experimental_status}")
+            print(f"\n📝 Description:")
+            print(f"   {problem.description}")
+            print(f"\n🎯 Physics Challenge:")
+            print(f"   {problem.physics_challenge}")
+            
+            print(f"\n🎯 Target Parameters ({len(problem.target_parameters)}):")
+            for param_name, param in problem.target_parameters.items():
+                print(f"  • {param_name} ({param.symbol})")
+                print(f"    Target: {param.target_value} {param.units}")
+                print(f"    Weight: {param.weight}")
+                print(f"    Description: {param.description}")
+                if param.current_record:
+                    print(f"    Current record: {param.current_record}")
+                print()
+            
+            if problem.constraints:
+                print(f"⚖️  Constraints ({len(problem.constraints)}):")
+                for constraint in problem.constraints:
+                    print(f"  • {constraint.name} ({constraint.constraint_type})")
+                    print(f"    {constraint.description}")
+                print()
+            
+            if problem.background_context:
+                print(f"📚 Background:")
+                print(f"   {problem.background_context}")
+                print()
+            
+            if problem.references:
+                print(f"📖 References:")
+                for ref in problem.references:
+                    print(f"  • {ref}")
+                print()
+            
+            if problem.keywords:
+                print(f"🏷️  Keywords: {', '.join(problem.keywords)}")
+                print()
+            
+            # Show current best solution if available
+            if problem.current_best_solution:
+                best = problem.current_best_solution
+                print(f"🏆 Current Best Solution:")
+                print(f"   Score: {best['score']:.3f}")
+                print(f"   Timestamp: {time.ctime(best['timestamp'])}")
+                print()
+        
+        else:
+            # Show summary statistics
+            summary = problem_library.get_problem_summary()
+            
+            print(f"\n📚 AMO Problem Library Summary")
+            print("=" * 40)
+            print(f"📊 Total problems: {summary['total_problems']}")
+            print(f"🔬 Categories: {len(summary['categories'])}")
+            
+            print(f"\n📊 By Category:")
+            for category, count in summary['by_category'].items():
+                print(f"  • {category}: {count} problems")
+            
+            print(f"\n📊 By Status:")
+            for status, count in summary['by_status'].items():
+                print(f"  • {status}: {count} problems")
+            
+            print(f"\n📊 By Difficulty:")
+            for difficulty, count in summary['by_difficulty'].items():
+                print(f"  • {difficulty}: {count} problems")
+            
+            print(f"\n💡 Use --list to see all problems")
+            print(f"💡 Use --show <problem_id> to see problem details")
+    
+    except Exception as e:
+        logger.error(f"❌ Problem management failed: {e}")
+        raise
+
+def run_create_problem(args: argparse.Namespace, logger) -> None:
+    """Create new AMO problem"""
+    
+    logger.info("📝 Creating new AMO problem")
+    
+    try:
+        if args.template:
+            # Load from template file
+            if not Path(args.template).exists():
+                print(f"❌ Template file not found: {args.template}")
+                return
+            
+            from amo_problem_definition import AMOProblemLoader, AMOProblemValidator
+            
+            if args.validate_only:
+                # Just validate the template
+                try:
+                    problem = AMOProblemLoader.load_from_yaml(args.template)
+                    validation_result = AMOProblemValidator.validate_problem(problem)
+                    
+                    if validation_result['is_valid']:
+                        print("✅ Problem definition is valid!")
+                    else:
+                        print("❌ Problem definition has errors:")
+                        for error in validation_result['errors']:
+                            print(f"   • {error}")
+                    
+                    if validation_result['warnings']:
+                        print("⚠️  Warnings:")
+                        for warning in validation_result['warnings']:
+                            print(f"   • {warning}")
+                    
+                    if validation_result['suggestions']:
+                        print("💡 Suggestions:")
+                        for suggestion in validation_result['suggestions']:
+                            print(f"   • {suggestion}")
+                
+                except Exception as e:
+                    print(f"❌ Failed to load problem: {e}")
+                
+                return
+            
+            # Load and add to library
+            try:
+                problem = AMOProblemLoader.load_from_yaml(args.template)
+                problem_library = AMOProblemLibrary()
+                problem_library.add_problem(problem)
+                
+                print(f"✅ Problem '{problem.id}' added to library!")
+                print(f"📋 Title: {problem.title}")
+                print(f"🔬 Category: {problem.category}")
+                print(f"🎯 Targets: {len(problem.target_parameters)} parameters")
+                
+            except Exception as e:
+                print(f"❌ Failed to create problem: {e}")
+        
+        elif args.interactive:
+            # Interactive problem creation
+            print("🛠️  Interactive AMO Problem Creation")
+            print("=" * 40)
+            
+            problem_data = {}
+            
+            # Basic information
+            problem_data['id'] = input("Problem ID: ").strip()
+            problem_data['title'] = input("Title: ").strip()
+            
+            print("\nAvailable categories:")
+            categories = ['cavity_qed', 'squeezed_light', 'photon_blockade', 
+                         'quantum_metrology', 'optomechanics', 'quantum_memory', 'hybrid_systems']
+            for i, cat in enumerate(categories, 1):
+                print(f"  {i}. {cat}")
+            
+            cat_choice = input(f"Select category (1-{len(categories)}): ").strip()
+            try:
+                problem_data['category'] = categories[int(cat_choice) - 1]
+            except (ValueError, IndexError):
+                problem_data['category'] = 'cavity_qed'
+            
+            problem_data['description'] = input("Description: ").strip()
+            problem_data['physics_challenge'] = input("Physics challenge: ").strip()
+            
+            # Target parameters
+            problem_data['target_parameters'] = {}
+            print("\nDefine target parameters (press Enter with empty name to finish):")
+            
+            while True:
+                param_name = input("Parameter name: ").strip()
+                if not param_name:
+                    break
+                
+                symbol = input(f"Symbol for {param_name}: ").strip()
+                target = input(f"Target value (e.g., '> 1000e6'): ").strip()
+                units = input(f"Units: ").strip()
+                description = input(f"Description: ").strip()
+                weight = input(f"Weight (default 1.0): ").strip() or "1.0"
+                
+                problem_data['target_parameters'][param_name] = {
+                    'symbol': symbol,
+                    'target': target,
+                    'units': units,
+                    'description': description,
+                    'weight': float(weight),
+                    'type': 'optimization'
+                }
+            
+            # Save to file
+            output_file = f"data/amo_problems/{problem_data['id']}.yaml"
+            Path(output_file).parent.mkdir(parents=True, exist_ok=True)
+            
+            from amo_problem_definition import AMOProblemLoader
+            
+            try:
+                # Create problem object and save
+                problem = AMOProblemLoader.load_from_dict(problem_data)
+                AMOProblemLoader.save_to_yaml(problem, output_file)
+                
+                print(f"\n✅ Problem saved to: {output_file}")
+                print(f"📋 Use 'python main.py problems --show {problem_data['id']}' to view details")
+                
+            except Exception as e:
+                print(f"❌ Failed to save problem: {e}")
+        
+        else:
+            print("💡 Use --template <file> to load from YAML template")
+            print("💡 Use --interactive for guided problem creation")
+            print("💡 Use --validate-only with --template to just validate")
+    
+    except Exception as e:
+        logger.error(f"❌ Problem creation failed: {e}")
+        raise
 
 if __name__ == '__main__':
     main()

@@ -48,6 +48,12 @@ class QuantumResearchEvolver:
             self.llm = A4FInterface(config_path)
         else:
             self.llm = None
+        
+        # AMO problem-solving mode
+        self.amo_mode = False
+        self.current_amo_problem = None
+        self.amo_convergence_history = []
+        self.amo_breakthrough_threshold = 0.9
             
         self.evaluator = QuantumOpticsEvaluator()
         self.generator = QuantumResearchGenerator()
@@ -610,3 +616,448 @@ class QuantumResearchEvolver:
             json.dump(state, f, indent=2)
             
         self.logger.info(f"💾 Evolution state saved to {filepath}")
+    
+    def set_amo_problem_mode(self, amo_problem) -> None:
+        """Set evolution controller to AMO problem-solving mode"""
+        self.amo_mode = True
+        self.current_amo_problem = amo_problem
+        self.amo_convergence_history = []
+        self.logger.info(f"🔬 AMO problem mode enabled: {amo_problem.title}")
+    
+    def evolve_for_amo_problem(self, amo_problem, max_generations: int = 50) -> List[ResearchSolution]:
+        """
+        Evolve solutions specifically for an AMO problem.
+        Uses parameter-targeted evolution with convergence detection.
+        """
+        self.set_amo_problem_mode(amo_problem)
+        
+        self.logger.info(f"🧬 Starting AMO problem evolution for: {amo_problem.title}")
+        self.logger.info(f"🎯 Target parameters: {list(amo_problem.target_parameters.keys())}")
+        
+        # Generate initial population targeted at the problem
+        initial_prompts = self.generator.generate_problem_targeted_prompts(
+            self._amo_problem_to_dict(amo_problem), 
+            self.population_size
+        )
+        
+        # Initialize population with problem-targeted solutions
+        self.population = []
+        for i, prompt in enumerate(initial_prompts):
+            try:
+                if not self.demo_mode:
+                    result = self.llm.generate_research(prompt.content, prompt.system_prompt)
+                else:
+                    result = self._generate_demo_content(prompt.category)
+                
+                # Evaluate using AMO problem-specific evaluation
+                evaluation = self.evaluator.evaluate_for_amo_problem(
+                    {
+                        'content': result.content,
+                        'category': prompt.category,
+                        'title': f"AMO Solution {i+1}",
+                        'description': result.content[:200] + "..." if len(result.content) > 200 else result.content
+                    },
+                    amo_problem
+                )
+                
+                solution = ResearchSolution(
+                    id=f"amo_gen0_sol{i}",
+                    content=result.content,
+                    category=prompt.category,
+                    title=f"AMO Solution {i+1}",
+                    description=evaluation.details.get('amo_problem_results', {}).get('achievement_count', 0),
+                    generation=0,
+                    parent_ids=[],
+                    mutation_type='amo_initial',
+                    evaluation_result=evaluation,
+                    generation_metadata={'amo_mode': True, 'problem_id': amo_problem.id},
+                    timestamp=time.time()
+                )
+                
+                self.population.append(solution)
+                
+            except Exception as e:
+                self.logger.warning(f"Failed to generate initial AMO solution {i}: {e}")
+        
+        # Evolution loop with AMO-specific logic
+        for generation in range(max_generations):
+            self.current_generation = generation
+            
+            # Calculate AMO progress
+            amo_progress = self._calculate_amo_progress(generation)
+            self.amo_convergence_history.append(amo_progress)
+            
+            self.logger.info(f"🧬 AMO Generation {generation + 1}/{max_generations}")
+            self.logger.info(f"🎯 Best score: {amo_progress['best_score']:.3f}")
+            self.logger.info(f"🏆 Targets achieved: {amo_progress['targets_achieved']}/{amo_progress['total_targets']}")
+            
+            # Check for breakthrough
+            if amo_progress['breakthrough_achieved']:
+                self.logger.info(f"🎉 BREAKTHROUGH! Problem solved at generation {generation + 1}")
+                break
+            
+            # Check for convergence
+            if self._check_amo_convergence():
+                self.logger.info(f"📈 AMO evolution converged at generation {generation + 1}")
+                break
+            
+            # Generate next generation with AMO-specific strategies
+            self._evolve_amo_generation()
+            
+            # Update best solutions
+            self._update_best_solutions()
+        
+        self.logger.info(f"✅ AMO evolution completed after {self.current_generation + 1} generations")
+        
+        # Final progress report
+        final_progress = self.amo_convergence_history[-1] if self.amo_convergence_history else {}
+        self.logger.info(f"🎯 Final score: {final_progress.get('best_score', 0):.3f}")
+        self.logger.info(f"🏆 Final targets: {final_progress.get('targets_achieved', 0)}/{final_progress.get('total_targets', 0)}")
+        
+        return self.best_solutions
+    
+    def _amo_problem_to_dict(self, amo_problem) -> Dict[str, Any]:
+        """Convert AMO problem to dictionary for prompt generation"""
+        return {
+            'id': amo_problem.id,
+            'title': amo_problem.title,
+            'category': amo_problem.category,
+            'description': amo_problem.description,
+            'physics_challenge': amo_problem.physics_challenge,
+            'target_parameters': {
+                name: {
+                    'target_value': param.target_value,
+                    'units': param.units,
+                    'description': param.description,
+                    'weight': param.weight
+                }
+                for name, param in amo_problem.target_parameters.items()
+            }
+        }
+    
+    def _calculate_amo_progress(self, generation: int) -> Dict[str, Any]:
+        """Calculate progress specifically for AMO problem solving"""
+        if not self.population or not self.current_amo_problem:
+            return {
+                'generation': generation,
+                'best_score': 0.0,
+                'targets_achieved': 0,
+                'total_targets': 0,
+                'breakthrough_achieved': False,
+                'convergence_indicator': 0.0
+            }
+        
+        # Find best solution
+        best_solution = max(self.population, key=lambda x: x.evaluation_result.total_score)
+        best_score = best_solution.evaluation_result.total_score
+        
+        # Check target achievements
+        amo_details = best_solution.evaluation_result.details.get('amo_problem_results', {})
+        targets_achieved = amo_details.get('achievement_count', 0)
+        total_targets = amo_details.get('total_parameters', len(self.current_amo_problem.target_parameters))
+        
+        # Check for breakthrough
+        breakthrough_achieved = best_score >= self.amo_breakthrough_threshold
+        
+        # Calculate convergence indicator
+        convergence_indicator = self._calculate_convergence_indicator()
+        
+        progress = {
+            'generation': generation,
+            'best_score': best_score,
+            'targets_achieved': targets_achieved,
+            'total_targets': total_targets,
+            'breakthrough_achieved': breakthrough_achieved,
+            'convergence_indicator': convergence_indicator,
+            'best_solution_id': best_solution.id,
+            'parameter_scores': amo_details.get('parameter_scores', {})
+        }
+        
+        return progress
+    
+    def _check_amo_convergence(self) -> bool:
+        """Check if AMO evolution has converged"""
+        if len(self.amo_convergence_history) < 10:
+            return False
+        
+        # Check for score plateau
+        recent_scores = [p['best_score'] for p in self.amo_convergence_history[-10:]]
+        score_variance = np.var(recent_scores)
+        
+        if score_variance < 0.001:  # Very small variance
+            return True
+        
+        # Check for diminishing returns
+        if len(self.amo_convergence_history) >= 20:
+            early_avg = np.mean([p['best_score'] for p in self.amo_convergence_history[-20:-10]])
+            recent_avg = np.mean([p['best_score'] for p in self.amo_convergence_history[-10:]])
+            
+            improvement = recent_avg - early_avg
+            if improvement < 0.01:  # Less than 1% improvement
+                return True
+        
+        return False
+    
+    def _calculate_convergence_indicator(self) -> float:
+        """Calculate convergence indicator for AMO evolution"""
+        if len(self.amo_convergence_history) < 5:
+            return 0.0
+        
+        # Score stability
+        recent_scores = [p['best_score'] for p in self.amo_convergence_history[-5:]]
+        score_stability = 1.0 - np.std(recent_scores)
+        
+        # Target consistency
+        recent_targets = [p['targets_achieved'] for p in self.amo_convergence_history[-5:]]
+        target_stability = 1.0 - (np.std(recent_targets) / max(recent_targets[-1], 1))
+        
+        return min((score_stability + target_stability) / 2, 1.0)
+    
+    def _evolve_amo_generation(self) -> None:
+        """Evolve generation with AMO-specific strategies"""
+        if not self.population or not self.current_amo_problem:
+            return
+        
+        new_population = []
+        
+        # Elite retention
+        elite_count = max(1, int(0.2 * self.population_size))
+        elites = sorted(self.population, key=lambda x: x.evaluation_result.total_score, reverse=True)[:elite_count]
+        new_population.extend(elites)
+        
+        # Determine strategies based on current progress
+        latest_progress = self.amo_convergence_history[-1] if self.amo_convergence_history else {}
+        targets_achieved = latest_progress.get('targets_achieved', 0)
+        total_targets = latest_progress.get('total_targets', 1)
+        completion_ratio = targets_achieved / total_targets if total_targets > 0 else 0
+        
+        # Strategy selection based on progress
+        if completion_ratio < 0.3:
+            # Early stage - focus on exploration
+            strategy_weights = {'parameter_optimization': 0.4, 'mutation': 0.3, 'breakthrough': 0.3}
+        elif completion_ratio < 0.7:
+            # Mid stage - focus on parameter optimization
+            strategy_weights = {'parameter_optimization': 0.6, 'mutation': 0.2, 'breakthrough': 0.2}
+        else:
+            # Late stage - focus on breakthrough seeking
+            strategy_weights = {'parameter_optimization': 0.3, 'mutation': 0.2, 'breakthrough': 0.5}
+        
+        # Generate new solutions based on strategies
+        while len(new_population) < self.population_size:
+            strategy = np.random.choice(
+                list(strategy_weights.keys()),
+                p=list(strategy_weights.values())
+            )
+            
+            try:
+                if strategy == 'parameter_optimization':
+                    new_solution = self._generate_parameter_optimization_solution()
+                elif strategy == 'breakthrough':
+                    new_solution = self._generate_breakthrough_solution()
+                else:  # mutation
+                    new_solution = self._generate_mutation_solution()
+                
+                if new_solution:
+                    new_population.append(new_solution)
+                    
+            except Exception as e:
+                self.logger.warning(f"Failed to generate {strategy} solution: {e}")
+        
+        # Update population
+        self.population = new_population[:self.population_size]
+    
+    def _generate_parameter_optimization_solution(self) -> Optional[ResearchSolution]:
+        """Generate solution focused on optimizing specific parameters"""
+        if not self.population or not self.current_amo_problem:
+            return None
+        
+        # Select parent solution
+        parent = random.choice(self.population[:min(5, len(self.population))])  # Top 5
+        
+        # Identify missing targets
+        amo_details = parent.evaluation_result.details.get('amo_problem_results', {})
+        parameter_scores = amo_details.get('parameter_scores', {})
+        
+        missing_targets = []
+        for param_name in self.current_amo_problem.target_parameters.keys():
+            if param_name not in parameter_scores or parameter_scores[param_name].get('score', 0) < 0.8:
+                missing_targets.append(param_name)
+        
+        if not missing_targets:
+            missing_targets = list(self.current_amo_problem.target_parameters.keys())
+        
+        # Generate optimization prompts
+        optimization_prompts = self.generator.generate_parameter_optimization_prompts(
+            {
+                'content': parent.content,
+                'category': parent.category,
+                'id': parent.id,
+                'generation': parent.generation,
+                'parameters': amo_details.get('extracted_parameters', {})
+            },
+            {name: param.__dict__ for name, param in self.current_amo_problem.target_parameters.items()},
+            missing_targets[:3]  # Focus on top 3 missing
+        )
+        
+        if not optimization_prompts:
+            return None
+        
+        prompt = random.choice(optimization_prompts)
+        
+        # Generate content
+        if not self.demo_mode:
+            result = self.llm.generate_research(prompt.content, prompt.system_prompt)
+        else:
+            result = self._generate_demo_content(prompt.category)
+        
+        # Evaluate
+        evaluation = self.evaluator.evaluate_for_amo_problem(
+            {
+                'content': result.content,
+                'category': prompt.category,
+                'title': f"Optimized {prompt.mutation_type}",
+                'description': result.content[:200] + "..." if len(result.content) > 200 else result.content
+            },
+            self.current_amo_problem
+        )
+        
+        return ResearchSolution(
+            id=f"amo_gen{self.current_generation + 1}_opt_{int(time.time() * 1000) % 10000}",
+            content=result.content,
+            category=prompt.category,
+            title=f"Optimized {prompt.mutation_type}",
+            description=evaluation.details.get('amo_problem_results', {}).get('achievement_count', 0),
+            generation=self.current_generation + 1,
+            parent_ids=[parent.id],
+            mutation_type=prompt.mutation_type,
+            evaluation_result=evaluation,
+            generation_metadata={'amo_mode': True, 'strategy': 'parameter_optimization'},
+            timestamp=time.time()
+        )
+    
+    def _generate_breakthrough_solution(self) -> Optional[ResearchSolution]:
+        """Generate solution using breakthrough-seeking strategies"""
+        if not self.current_amo_problem:
+            return None
+        
+        # Get current best score
+        best_score = max((s.evaluation_result.total_score for s in self.population), default=0.0)
+        
+        # Generate breakthrough prompts
+        breakthrough_prompts = self.generator.generate_breakthrough_seeking_prompts(
+            self._amo_problem_to_dict(self.current_amo_problem),
+            best_score
+        )
+        
+        if not breakthrough_prompts:
+            return None
+        
+        prompt = random.choice(breakthrough_prompts)
+        
+        # Generate content
+        if not self.demo_mode:
+            result = self.llm.generate_research(prompt.content, prompt.system_prompt)
+        else:
+            result = self._generate_demo_content(prompt.category)
+        
+        # Evaluate
+        evaluation = self.evaluator.evaluate_for_amo_problem(
+            {
+                'content': result.content,
+                'category': prompt.category,
+                'title': f"Breakthrough {prompt.mutation_type}",
+                'description': result.content[:200] + "..." if len(result.content) > 200 else result.content
+            },
+            self.current_amo_problem
+        )
+        
+        return ResearchSolution(
+            id=f"amo_gen{self.current_generation + 1}_break_{int(time.time() * 1000) % 10000}",
+            content=result.content,
+            category=prompt.category,
+            title=f"Breakthrough {prompt.mutation_type}",
+            description=evaluation.details.get('amo_problem_results', {}).get('achievement_count', 0),
+            generation=self.current_generation + 1,
+            parent_ids=[],
+            mutation_type=prompt.mutation_type,
+            evaluation_result=evaluation,
+            generation_metadata={'amo_mode': True, 'strategy': 'breakthrough'},
+            timestamp=time.time()
+        )
+    
+    def _generate_mutation_solution(self) -> Optional[ResearchSolution]:
+        """Generate solution using standard mutation"""
+        if not self.population:
+            return None
+        
+        # Select parent
+        parent = self._select_parent_for_mutation()
+        
+        # Create mutation prompt
+        solution_data = {
+            'id': parent.id,
+            'content': parent.content,
+            'category': parent.category,
+            'generation': parent.generation
+        }
+        
+        mutation_prompt = self.generator.mutate_solution(solution_data)
+        
+        # Generate content
+        if not self.demo_mode:
+            result = self.llm.generate_research(mutation_prompt.content, mutation_prompt.system_prompt)
+        else:
+            result = self._generate_demo_content(mutation_prompt.category)
+        
+        # Evaluate
+        evaluation = self.evaluator.evaluate_for_amo_problem(
+            {
+                'content': result.content,
+                'category': mutation_prompt.category,
+                'title': f"Mutated {parent.title}",
+                'description': result.content[:200] + "..." if len(result.content) > 200 else result.content
+            },
+            self.current_amo_problem
+        )
+        
+        return ResearchSolution(
+            id=f"amo_gen{self.current_generation + 1}_mut_{int(time.time() * 1000) % 10000}",
+            content=result.content,
+            category=mutation_prompt.category,
+            title=f"Mutated {parent.title}",
+            description=evaluation.details.get('amo_problem_results', {}).get('achievement_count', 0),
+            generation=self.current_generation + 1,
+            parent_ids=[parent.id],
+            mutation_type=mutation_prompt.mutation_type,
+            evaluation_result=evaluation,
+            generation_metadata={'amo_mode': True, 'strategy': 'mutation'},
+            timestamp=time.time()
+        )
+    
+    def _select_parent_for_mutation(self) -> ResearchSolution:
+        """Select parent solution for mutation using tournament selection"""
+        tournament_size = min(5, len(self.population))
+        tournament = random.sample(self.population, tournament_size)
+        return max(tournament, key=lambda x: x.evaluation_result.total_score)
+    
+    def get_amo_evolution_summary(self) -> Dict[str, Any]:
+        """Get comprehensive summary of AMO evolution"""
+        if not self.amo_mode or not self.amo_convergence_history:
+            return {}
+        
+        final_progress = self.amo_convergence_history[-1]
+        
+        return {
+            'problem_id': self.current_amo_problem.id if self.current_amo_problem else None,
+            'problem_title': self.current_amo_problem.title if self.current_amo_problem else None,
+            'total_generations': len(self.amo_convergence_history),
+            'breakthrough_achieved': final_progress.get('breakthrough_achieved', False),
+            'final_score': final_progress.get('best_score', 0.0),
+            'targets_achieved': final_progress.get('targets_achieved', 0),
+            'total_targets': final_progress.get('total_targets', 0),
+            'convergence_history': [p['best_score'] for p in self.amo_convergence_history],
+            'target_progress': [p['targets_achieved'] for p in self.amo_convergence_history],
+            'parameter_details': final_progress.get('parameter_scores', {}),
+            'best_solution_id': final_progress.get('best_solution_id'),
+            'model_used': "demo-mode" if self.demo_mode else (self.llm.current_model if self.llm else "unknown")
+        }

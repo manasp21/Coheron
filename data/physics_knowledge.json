@@ -1,0 +1,379 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Physics knowledge database for AMO parameter validation and calculation",
+    "last_updated": "2024-12-29"
+  },
+  
+  "atomic_data": {
+    "alkali_atoms": {
+      "Rb87": {
+        "ground_state": "5S₁/₂",
+        "excited_state": "5P₃/₂",
+        "transition_wavelength": 780.24e-9,
+        "natural_linewidth": 6.07e6,
+        "saturation_intensity": 1.669e-3,
+        "recoil_velocity": 5.89e-3,
+        "magic_wavelength": 790.02e-9,
+        "hyperfine_splitting": {
+          "ground": 6.834e9,
+          "excited": [72.9e6, 229.8e6]
+        },
+        "nuclear_spin": 1.5,
+        "magnetic_moment": 0.995
+      },
+      "Cs133": {
+        "ground_state": "6S₁/₂", 
+        "excited_state": "6P₃/₂",
+        "transition_wavelength": 852.35e-9,
+        "natural_linewidth": 5.22e6,
+        "saturation_intensity": 1.105e-3,
+        "recoil_velocity": 3.51e-3,
+        "magic_wavelength": 935.6e-9,
+        "hyperfine_splitting": {
+          "ground": 9.193e9,
+          "excited": [151.2e6, 251.0e6]
+        },
+        "nuclear_spin": 3.5,
+        "magnetic_moment": 2.581
+      },
+      "Li6": {
+        "ground_state": "2S₁/₂",
+        "excited_state": "2P₃/₂", 
+        "transition_wavelength": 670.98e-9,
+        "natural_linewidth": 5.87e6,
+        "saturation_intensity": 2.54e-3,
+        "recoil_velocity": 9.88e-3,
+        "magic_wavelength": 670.96e-9,
+        "nuclear_spin": 1.0,
+        "magnetic_moment": 0.822
+      }
+    },
+    
+    "alkaline_earth": {
+      "Ca40": {
+        "singlet_transition": {
+          "wavelength": 422.7e-9,
+          "linewidth": 34.7e6,
+          "transition": "1S₀ → 1P₁"
+        },
+        "intercombination": {
+          "wavelength": 657.46e-9,
+          "linewidth": 400,
+          "transition": "1S₀ → 3P₁"
+        },
+        "clock_transition": {
+          "wavelength": 729.15e-9,
+          "linewidth": 0.0014,
+          "transition": "1S₀ → 3P₀"
+        }
+      },
+      "Sr88": {
+        "singlet_transition": {
+          "wavelength": 460.86e-9,
+          "linewidth": 32.0e6,
+          "transition": "1S₀ → 1P₁"
+        },
+        "intercombination": {
+          "wavelength": 689.45e-9,
+          "linewidth": 7.5e3,
+          "transition": "1S₀ → 3P₁"
+        },
+        "clock_transition": {
+          "wavelength": 698.45e-9,
+          "linewidth": 1.0e-3,
+          "transition": "1S₀ → 3P₀"
+        }
+      }
+    },
+    
+    "rydberg_atoms": {
+      "typical_properties": {
+        "principal_quantum_number_range": [30, 100],
+        "binding_energy_scaling": "13.6 eV / n²",
+        "size_scaling": "0.529 Å × n²",
+        "polarizability_scaling": "n⁷",
+        "van_der_waals_coefficient": "C₆ ∝ n¹¹",
+        "blackbody_lifetime": "∝ n³"
+      },
+      "applications": [
+        "quantum gates",
+        "many-body physics",
+        "quantum simulation",
+        "precision measurements"
+      ]
+    }
+  },
+  
+  "cavity_designs": {
+    "fabry_perot": {
+      "linear_cavity": {
+        "description": "Two-mirror linear resonator",
+        "typical_finesse": [1000, 100000],
+        "mode_volume": "π w₀² L / 2",
+        "free_spectral_range": "c / (2nL)",
+        "applications": ["cavity QED", "laser stabilization", "precision spectroscopy"]
+      },
+      "ring_cavity": {
+        "description": "Closed-loop optical resonator",
+        "typical_finesse": [10000, 1000000],
+        "advantages": ["unidirectional propagation", "reduced spatial hole burning"],
+        "applications": ["frequency combs", "nonlinear optics", "atom interferometry"]
+      }
+    },
+    
+    "microresonators": {
+      "microsphere": {
+        "typical_q_factor": [1e6, 1e10],
+        "mode_volume": "~(λ/n)³",
+        "coupling_method": "evanescent field",
+        "materials": ["silica", "crystalline", "semiconductor"]
+      },
+      "microtoroid": {
+        "typical_q_factor": [1e6, 1e8],
+        "fabrication": "photolithography + reflow",
+        "advantages": ["high Q/V ratio", "CMOS compatible"],
+        "applications": ["optomechanics", "nonlinear optics", "sensing"]
+      },
+      "photonic_crystal": {
+        "typical_q_factor": [1e3, 1e6],
+        "mode_volume": "~0.1 (λ/n)³",
+        "advantages": ["ultra-small mode volume", "engineerable dispersion"],
+        "applications": ["cavity QED", "quantum dots", "slow light"]
+      }
+    },
+    
+    "superconducting_cavities": {
+      "3d_cavity": {
+        "typical_q_factor": [1e6, 1e12],
+        "operating_temperature": "~10 mK",
+        "materials": ["aluminum", "niobium"],
+        "applications": ["circuit QED", "quantum computing", "quantum memories"]
+      }
+    }
+  },
+  
+  "experimental_records": {
+    "cavity_qed": {
+      "strongest_coupling": {
+        "value": 1.5e7,
+        "units": "Hz",
+        "system": "Rydberg atoms in superconducting cavity",
+        "reference": "Haroche group, Nature 580, 56 (2020)",
+        "temperature": "~10 mK"
+      },
+      "highest_cooperativity": {
+        "value": 2.7e5,
+        "units": "dimensionless",
+        "system": "Single atom in optical cavity",
+        "reference": "Kimble group, Science 340, 1202 (2013)",
+        "temperature": "~1 μK"
+      },
+      "room_temperature_record": {
+        "coupling": 50e6,
+        "cooperativity": 10,
+        "system": "NV centers in diamond cavity",
+        "reference": "Lukin group, Nature 555, 493 (2018)"
+      }
+    },
+    
+    "squeezed_light": {
+      "best_squeezing": {
+        "value": -15.0,
+        "units": "dB",
+        "system": "EPR squeezing at 1550 nm",
+        "reference": "Schnabel group, Nature Photonics 13, 275 (2019)",
+        "detection_efficiency": 0.98
+      },
+      "continuous_wave": {
+        "value": -12.7,
+        "units": "dB", 
+        "system": "OPO below threshold",
+        "reference": "Polzik group, Phys. Rev. Lett. 117, 110801 (2016)",
+        "bandwidth": "10 MHz"
+      }
+    },
+    
+    "optomechanics": {
+      "lowest_phonon_number": {
+        "value": 1.2e-4,
+        "units": "phonons",
+        "system": "Levitated nanoparticle",
+        "reference": "Aspelmeyer group, Science 367, 892 (2020)",
+        "mass": "1e-19 kg"
+      },
+      "highest_cooperativity": {
+        "value": 1e6,
+        "units": "dimensionless", 
+        "system": "Membrane in cavity",
+        "reference": "Painter group, Nature 563, 53 (2018)",
+        "frequency": "1.2 MHz"
+      }
+    },
+    
+    "photon_blockade": {
+      "best_antibunching": {
+        "g2_0": 0.005,
+        "system": "Single atoms in optical tweezers",
+        "reference": "Lukin group, Science 365, 570 (2019)",
+        "collection_efficiency": 0.43
+      },
+      "quantum_dots": {
+        "g2_0": 0.01,
+        "indistinguishability": 0.92,
+        "system": "Self-assembled quantum dots",
+        "reference": "Senellart group, Nature Photon. 10, 340 (2016)",
+        "collection_efficiency": 0.65
+      }
+    },
+    
+    "quantum_memory": {
+      "longest_storage": {
+        "time": 1.0e-3,
+        "fidelity": 0.85,
+        "system": "Cold atomic ensemble",
+        "reference": "Lukin group, Science 326, 108 (2009)"
+      },
+      "highest_fidelity": {
+        "fidelity": 0.95,
+        "time": 100e-6,
+        "system": "Single photon in atomic vapor",
+        "reference": "Polzik group, Nature 469, 512 (2011)"
+      }
+    }
+  },
+  
+  "physical_constants": {
+    "fundamental": {
+      "planck_constant": 6.62607015e-34,
+      "reduced_planck": 1.054571817e-34,
+      "speed_of_light": 299792458,
+      "elementary_charge": 1.602176634e-19,
+      "boltzmann_constant": 1.380649e-23,
+      "vacuum_permittivity": 8.8541878128e-12,
+      "vacuum_permeability": 1.25663706212e-6,
+      "electron_mass": 9.1093837015e-31,
+      "proton_mass": 1.67262192369e-27,
+      "neutron_mass": 1.67492749804e-27,
+      "atomic_mass_unit": 1.66053906660e-27,
+      "bohr_radius": 5.29177210903e-11,
+      "fine_structure_constant": 7.2973525693e-3
+    },
+    
+    "derived": {
+      "rydberg_energy": 13.605693122994,
+      "classical_electron_radius": 2.8179403262e-15,
+      "thomson_cross_section": 6.6524587321e-29,
+      "bohr_magneton": 9.2740100783e-24,
+      "nuclear_magneton": 5.0507837461e-27
+    }
+  },
+  
+  "typical_parameter_ranges": {
+    "coupling_strengths": {
+      "weak_coupling": [1e3, 1e6],
+      "intermediate_coupling": [1e6, 1e8], 
+      "strong_coupling": [1e8, 1e10],
+      "ultra_strong_coupling": [1e10, 1e12],
+      "units": "Hz"
+    },
+    
+    "quality_factors": {
+      "low_q": [10, 1000],
+      "medium_q": [1000, 100000],
+      "high_q": [100000, 10000000],
+      "ultra_high_q": [10000000, 1000000000],
+      "units": "dimensionless"
+    },
+    
+    "cooperativities": {
+      "weak_coupling_regime": [0.01, 1],
+      "intermediate_regime": [1, 100],
+      "strong_coupling_regime": [100, 10000],
+      "very_strong_regime": [10000, 1000000],
+      "units": "dimensionless"
+    },
+    
+    "temperatures": {
+      "ultra_cold": [1e-9, 1e-6],
+      "cold": [1e-6, 1e-3],
+      "cryogenic": [1e-3, 4.2],
+      "liquid_nitrogen": [77, 77],
+      "room_temperature": [295, 305],
+      "units": "K"
+    }
+  },
+  
+  "material_properties": {
+    "optical_materials": {
+      "fused_silica": {
+        "refractive_index": 1.46,
+        "absorption_coefficient": 1e-6,
+        "thermal_expansion": 5.5e-7,
+        "applications": ["high-Q cavities", "fiber optics", "precision optics"]
+      },
+      "crystalline_coatings": {
+        "materials": ["Ta₂O₅/SiO₂", "AlGaAs/GaAs"],
+        "typical_loss": [1e-6, 1e-5],
+        "applications": ["ultra-high-Q cavities", "gravitational wave detectors"]
+      },
+      "diamond": {
+        "refractive_index": 2.42,
+        "phonon_frequency": 40e12,
+        "nv_zpl_wavelength": 637e-9,
+        "applications": ["NV centers", "optomechanics", "quantum sensing"]
+      }
+    },
+    
+    "superconductors": {
+      "aluminum": {
+        "critical_temperature": 1.2,
+        "gap_frequency": 90e9,
+        "applications": ["transmon qubits", "3D cavities"]
+      },
+      "niobium": {
+        "critical_temperature": 9.2,
+        "gap_frequency": 700e9,
+        "applications": ["SRF cavities", "circuit QED"]
+      }
+    }
+  },
+  
+  "measurement_techniques": {
+    "detection_methods": {
+      "photon_counting": {
+        "avalanche_photodiodes": {
+          "efficiency": [0.5, 0.95],
+          "dark_count_rate": [10, 10000],
+          "timing_jitter": [50e-12, 500e-12],
+          "units": {"efficiency": "dimensionless", "dark_count": "Hz", "jitter": "s"}
+        },
+        "superconducting_nanowires": {
+          "efficiency": [0.8, 0.98],
+          "dark_count_rate": [0.1, 100],
+          "timing_jitter": [5e-12, 50e-12],
+          "operating_temperature": [0.8, 4.2],
+          "units": {"efficiency": "dimensionless", "dark_count": "Hz", "jitter": "s", "temperature": "K"}
+        }
+      },
+      
+      "homodyne_detection": {
+        "shot_noise_limit": "quantum limit for amplitude/phase measurements",
+        "visibility": [0.95, 0.999],
+        "bandwidth": [1e6, 1e9],
+        "applications": ["squeezed light", "quantum states", "continuous variables"]
+      }
+    },
+    
+    "spectroscopy": {
+      "saturation_spectroscopy": {
+        "resolution": "natural linewidth limited",
+        "applications": ["laser frequency locking", "atomic reference"]
+      },
+      "modulation_spectroscopy": {
+        "sensitivity": "shot noise limited",
+        "applications": ["cavity locking", "laser stabilization"]
+      }
+    }
+  }
+}

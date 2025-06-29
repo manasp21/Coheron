@@ -1,0 +1,110 @@
+id: quantum_sensing_limit
+title: Heisenberg-Limited Quantum Sensing
+category: quantum_metrology
+description: Achieve Heisenberg-limited sensitivity scaling with N entangled particles for precision measurement
+physics_challenge: Demonstrate 1/N sensitivity scaling with entangled states while maintaining stability against decoherence
+
+target_parameters:
+  sensitivity_enhancement:
+    symbol: ξ
+    target: "> 10"
+    units: ""
+    description: Enhancement factor beyond standard quantum limit
+    weight: 0.4
+    type: optimization
+    current_record: "~6x enhancement demonstrated"
+  
+  particle_number:
+    symbol: N
+    target: "> 1000"
+    units: ""
+    description: Number of entangled particles in sensing protocol
+    weight: 0.3
+    type: optimization
+    current_record: "~100 particles for >5x enhancement"
+  
+  coherence_time:
+    symbol: T_coh
+    target: "> 1e-3"
+    units: s
+    description: Coherence time of entangled sensing state
+    weight: 0.2
+    type: optimization
+    current_record: "~100 μs for large ensembles"
+  
+  measurement_precision:
+    symbol: Δφ
+    target: "< 1e-9"
+    units: rad
+    description: Phase measurement precision per shot
+    weight: 0.1
+    type: optimization
+    current_record: "~1e-7 rad achieved"
+
+constraints:
+  - name: heisenberg_scaling
+    description: Sensitivity must scale as 1/N, not 1/√N
+    type: fundamental
+    penalty_weight: 1.0
+  
+  - name: entanglement_verification
+    description: Quantum entanglement must be verified and quantified
+    type: technical
+    penalty_weight: 0.9
+  
+  - name: decoherence_robustness
+    description: Protocol must maintain advantage despite realistic decoherence
+    type: practical
+    penalty_weight: 0.8
+
+breakthrough_threshold: 0.9
+significant_progress_threshold: 0.75
+
+domain: quantum_optics
+subdomain: quantum_metrology
+difficulty_level: expert
+experimental_status: open
+
+background_context: |
+  Quantum-enhanced sensing using entangled states can surpass the standard quantum limit,
+  achieving Heisenberg-limited sensitivity scaling. This would revolutionize precision
+  measurements in fundamental physics, navigation, medical imaging, and basic science.
+  
+  Key challenges:
+  - Creating and maintaining large-scale entanglement
+  - Decoherence destroying quantum advantage
+  - State preparation and readout complexity
+  - Scaling to practically useful particle numbers
+
+experimental_constraints:
+  - "Entangled state must be prepared deterministically"
+  - "Measurement protocol must be optimized for maximum sensitivity"
+  - "System must operate in realistic noisy environment"
+  - "Quantum advantage must persist throughout measurement"
+
+theoretical_framework: |
+  Quantum Fisher Information: F_Q = 4⟨(∂_φ|ψ⟩)²⟩ - 4|⟨∂_φ ψ|ψ⟩|²
+  
+  Cramér-Rao bound: Δφ ≥ 1/√(M·F_Q)
+  
+  Standard quantum limit: Δφ_SQL ∝ 1/√N
+  Heisenberg limit: Δφ_HL ∝ 1/N
+  
+  Enhancement factor: ξ = Δφ_SQL/Δφ_achieved
+
+references:
+  - "Giovannetti, V., Lloyd, S. & Maccone, L. Quantum-enhanced measurements. Nature Photon. 5, 222 (2011)"
+  - "Pezzè, L., Smerzi, A., Oberthaler, M.K., Schmied, R. & Treutlein, P. Quantum metrology with atomic ensembles. Rev. Mod. Phys. 90, 035005 (2018)"
+  - "Leibfried, D. et al. Creation of a six-atom Schrödinger cat state. Nature 438, 639 (2005)"
+
+related_problems:
+  - atomic_clock_precision
+  - gravitational_wave_enhancement
+
+keywords:
+  - quantum metrology
+  - Heisenberg limit
+  - entanglement
+  - precision measurement
+  - quantum sensing
+  - Fisher information

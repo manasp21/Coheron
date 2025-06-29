@@ -15,7 +15,9 @@
       "Bash(python:*)",
       "Bash(rm:*)",
       "Bash(sudo apt:*)",
-      "Bash(sudo apt install:*)"
+      "Bash(sudo apt install:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)"
     ],
     "deny": []
   }
